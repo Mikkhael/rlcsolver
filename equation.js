@@ -46,20 +46,20 @@ class RationalExpression
         this.numerator = numerator;
         this.denominator = denominator;
         
-        this.isCollapsedFraction = false; //TODO calculate
+        this.isFlat = false; //TODO calculate
         
         // TODO normalization
     }
     
-    collapseFractions()
+    flatten()
     {
-        if(this.isCollapsedFraction)
+        if(this.isFlat)
         {
             return;
         }
         
-        collapsedNumerator = this.numerator.getCollapsedFraction();
-        collapsedDenominator = this.numerator.getCollapsedFraction();
+        collapsedNumerator = this.numerator.flattenAndReturnCommonDenominator();
+        collapsedDenominator = this.numerator.flattenAndReturnCommonDenominator();
         
         this.numerator = collapsedNumerator[0];
         this.denominator = collapsedDenominator[0];
@@ -67,7 +67,7 @@ class RationalExpression
         this.numerator.multiplyBySumProduct(collapsedDenominator[1]);
         this.denominator.multiplyBySumProduct(collapsedNumerator[1]);
         
-        this.isCollapsedFraction = true;
+        this.isFlat = true;
     }
     
     multiplyByExpression(other, reverse = false)
@@ -85,8 +85,7 @@ class RationalExpression
             this.denominator.multiplyBySumProduct(other.denominator);
         }
         
-        // TODO improve normality update
-        this.isCollapsedFraction = false;
+        this.isFlat = this.isFlat && other.isFlat;
     }
     
     addExpression(other, reverse = false)
@@ -147,25 +146,34 @@ class RationalSumProduct
         // [RationalSum]
         this.factors = factors;
         
-        // TODO add isCollapsedFraction test
-        this.isCollapsedFraction = false;
+        // TODO add test
+        // (no nasted expression has a sum in the denominator)
+        this.isFlat = false;
     }
     
-    getCollapsedFraction()
+    flattenAndReturnCommonDenominator()
     {
-        if(this.isCollapsedFraction)
+        if(this.isFlat)
         {
-            return [this, new RationalSumProduct()];
+            return new RationalSumProduct();
         }
         
-        // TODO
+        let den = new RationalSumProduct();
+        
+        for(let sum of this.factors)
+        {
+            let tempDen = sum.flattenAndReturnCommonDenominator();
+            den.multiplyBySumProduct(tempDen);
+        }
+        
+        return den;
     }
     
     multiplyBySumProduct(other)
     {
         this.factors = this.factors.concat(other.factors);
         
-        this.isCollapsedFraction = this.isCollapsedFraction && other.isCollapsedFraction;
+        this.isFlat = this.isFlat && other.isFlat;
     }
     
     addSumProduct(other, reversed = false)
@@ -190,6 +198,14 @@ class RationalSum // TODO
     {
         // [RationalExpression]
         this.summants = summants;
+        
+        // Sum of expressions with no denominator
+        this.isFlatSum = false;
+    }
+    
+    flattenAndReturnCommonDenominator()
+    {
+        // TODO
     }
     
     isEmpty()
