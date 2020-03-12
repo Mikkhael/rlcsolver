@@ -185,7 +185,7 @@ class RationalMonomial
     multiplyByMonomial(other, reverse = false)
     {
         this.numericValue.multiplyByNumericValue(other.numericValue, reverse);
-        this.namedValueProduct.multiplyByNamedValueProduct(other, this.namedValueProduct, reverse);
+        this.namedValueProduct.multiplyByNamedValueProduct(other.namedValueProduct, reverse);
     }
     
     copy()
@@ -212,7 +212,7 @@ class RationalSumProduct
         this.factors = factors;
         
         // (no nasted expression has a sum in the denominator)
-        checkIfIsFlat();
+        this.checkIfIsFlat();
     }
     
     checkIfIsFlat()
@@ -355,7 +355,7 @@ class RationalSum // TODO
         {
             summant.multiplyAllByExpression(other, reverse);
         }
-        checkIfIsFlat();
+        this.checkIfIsFlat();
     }
     
     negate()
@@ -393,11 +393,11 @@ class NumericValue
     {
         if(reverse)
         {
-            value /= other.value;
+            this.value /= other.value;
         }
         else
         {
-            value *= other.value;
+            this.value *= other.value;
         }
     }
     
@@ -405,11 +405,11 @@ class NumericValue
     {
         if(reverse)
         {
-            value -= other.value;
+            this.value -= other.value;
         }
         else
         {
-            value += other.value;
+            this.value += other.value;
         }
     }
     
@@ -420,12 +420,12 @@ class NumericValue
     
     isZero()
     {
-        return value === 0;
+        return this.value === 0;
     }
     
     isOne()
     {
-        return value === 1;
+        return this.value === 1;
     }
 }
 
@@ -450,11 +450,25 @@ class NamedValueProduct
         {
             if(reverse)
             {
-                this.data[id] += other.data[id];
+                if(!this.data[id])
+                {
+                    this.data[id] = -other.data[id];
+                }
+                else
+                {
+                    this.data[id] -= other.data[id];
+                }
             }
             else
             {
-                this.data[id] -= other.data[id];
+                if(!this.data[id])
+                {
+                    this.data[id] = other.data[id];
+                }
+                else
+                {
+                    this.data[id] += other.data[id];
+                }
             }
             if(!this.data[id])
             {

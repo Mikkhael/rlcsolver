@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link rel="stylesheet" href="index.css">
+    
+    <script src="equation.js"></script>
+    <script src="circut.js"></script>
+    <script src="presentation.js"></script>
+    <script src="main.js"></script>
+    
+    <title>TEST</title>
+</head>
+<body>
+    
+    
+    <script>
+        
+        let exp1 = new RationalExpression(
+            new RationalMonomial(
+                new NumericValue(14), 
+                new NamedValueProduct({1: 2, 2: -1})
+            ),
+            new RationalSumProduct([
+                new RationalSum([
+                    new RationalExpression(
+                        new RationalMonomial(
+                            new NumericValue(1),
+                            new NamedValueProduct({1:1})
+                        )
+                    ),
+                    new RationalExpression(
+                        new RationalMonomial(
+                            new NumericValue(-1),
+                            new NamedValueProduct({2:1})
+                        )
+                    ),
+                ])
+            ])
+        );
+        
+        let exp2 = new RationalExpression(
+            new RationalMonomial(
+                new NumericValue(3), 
+                new NamedValueProduct({2: 2, 3: 1})
+            ),
+            new RationalSumProduct([
+                new RationalSum([
+                    new RationalExpression(
+                        new RationalMonomial(
+                            new NumericValue(42),
+                            new NamedValueProduct({1:1})
+                        )
+                    )
+                ])
+            ]),
+            new RationalSumProduct([
+                new RationalSum([
+                    new RationalExpression(
+                        new RationalMonomial(
+                            new NumericValue(1),
+                            new NamedValueProduct({2:1})
+                        )
+                    ),
+                    new RationalExpression(
+                        new RationalMonomial(
+                            new NumericValue(50)
+                        )
+                    ),
+                ])
+            ])
+        );
+        
+        let exp3 = exp1.copy();
+        exp3.multiplyByExpression(exp2)
+        let exp4 = exp2.copy();
+        exp4.multiplyByExpression(exp1);
+        
+        console.log(exp1);
+        console.log(exp2);
+        console.log(exp3);
+        console.log(exp4);
+        
+    </script>
+    
+</body>
+</html>
