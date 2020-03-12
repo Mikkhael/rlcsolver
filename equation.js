@@ -173,6 +173,21 @@ class RationalProduct extends RationalSubExpression
         return this;
     }
     
+    isMonomial()
+    {
+        return this.numerator.length === 0 && this.denominator.length === 0;
+    }
+    
+    hasNumerator()
+    {
+        return this.numerator.length > 0;
+    }
+    
+    hasDenominator()
+    {
+        return this.denominator.length > 0;
+    }
+    
     getType()
     {
         return "product";
@@ -246,6 +261,11 @@ class RationalSum extends RationalSubExpression
         return this;
     }
     
+    isEmpty()
+    {
+        return this.summants.length === 0;
+    }
+    
     getType()
     {
         return "sum";
@@ -283,7 +303,17 @@ class RationalMonomial
     
     isOne()
     {
-        return this.numericValue.isOne();
+        return this.isNumeric() && this.numericValue.isOne();
+    }
+    
+    isNegativeOne()
+    {
+        return this.isNumeric() && this.numericValue.isNegativeOne();
+    }
+    
+    isNumeric()
+    {
+        return this.namedValueProduct.isEmpty();
     }
     
     convertToProduct()
@@ -352,6 +382,11 @@ class NumericValue
     {
         return this.value === 1;
     }
+    
+    isNegativeOne()
+    {
+        return this.value === -1;
+    }
 }
 
 class NamedValueProduct
@@ -407,5 +442,10 @@ class NamedValueProduct
         let res = new NamedValueProduct();
         res.data = {...this.data};
         return res;
+    }
+    
+    isEmpty()
+    {
+        return Object.keys(this.data).length === 0;
     }
 }

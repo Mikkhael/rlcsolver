@@ -24,13 +24,50 @@
         let exp4 = exp3.copy().addMonomial(RationalMonomial.create(7));
         let exp5 = exp4.copy().addMonomial(RationalMonomial.create(8, {5 : 5}));
         let exp6 = exp5.copy().addMonomial(RationalMonomial.create(9));
+        let exp7 = exp6.copy().multiplyMonomial(RationalMonomial.create(1, {5: 2}), true);
+        let exp8 = exp7.copy().multiplyMonomial(RationalMonomial.create(-1));
+        let exp9 = exp8.copy().multiplyMonomial(RationalMonomial.create(-1, {5: 2}));
+        let exp10 = exp9.copy().multiplyMonomial(RationalMonomial.create(-1));
         
-        console.log(exp1);
-        console.log(exp2);
-        console.log(exp3);
-        console.log(exp4);
-        console.log(exp5);
-        console.log(exp6);
+        console.log(LatexConverter.RationalExpression(exp1));
+        console.log(LatexConverter.RationalExpression(exp2));
+        console.log(LatexConverter.RationalExpression(exp3));
+        console.log(LatexConverter.RationalExpression(exp4));
+        console.log(LatexConverter.RationalExpression(exp5));
+        console.log(LatexConverter.RationalExpression(exp6));
+        console.log(LatexConverter.RationalExpression(exp7));
+        console.log(LatexConverter.RationalExpression(exp8));
+        console.log(LatexConverter.RationalExpression(exp9));
+        console.log(LatexConverter.RationalExpression(exp10));
+        
+        
+        let exp11 = new RationalExpression(
+            new RationalProduct(
+                [
+                    exp10.copy(),
+                    exp3.copy()
+                ],
+                [
+                    new RationalExpression(
+                        new RationalSum(
+                            [
+                                exp10.copy(),
+                                exp3.copy()
+                            ]
+                        )
+                    )
+                ],
+                new RationalMonomial(
+                    new NumericValue(69.42),
+                    new NamedValueProduct({
+                        A: 2137,
+                        B: -17
+                    })
+                )
+            )
+        );
+        
+        console.log(LatexConverter.RationalExpression(exp11));
         
     </script>
     
