@@ -72,13 +72,9 @@ class RationalExpression
         return this.subExpression.copy().toExpression();
     }
     
-    isProduct()
+    getType()
     {
-        return this.subExpression.isProduct();
-    }
-    isSum()
-    {
-        return this.subExpression.isSum();
+        return this.subExpression.getType();
     }
 }
 
@@ -126,14 +122,9 @@ class RationalSubExpression
         }
     }
     
-    isProduct()
+    getType()
     {
-        return false;
-    }
-    
-    isSum()
-    {
-        return false;
+        return "none";
     }
 }
 
@@ -152,7 +143,7 @@ class RationalProduct extends RationalSubExpression
     
     getMultiplied(subExpression, reverse = false)
     {
-        if(subExpression.isProduct())
+        if(subExpression.getType() === "product")
         {
             this.monomial.multiplyByMonomial(subExpression.monomial, reverse);
             this.combine(subExpression, reverse);
@@ -175,9 +166,9 @@ class RationalProduct extends RationalSubExpression
         return new RationalSum([this.toExpression(), subExpression.copy().toExpression()]);
     }
     
-    isProduct()
+    getType()
     {
-        return true;
+        return "product"
     }
 }
 
@@ -186,7 +177,7 @@ class RationalSum extends RationalSubExpression
 {
     constructor(positive = [], negative = [])
     {
-        super(positive, negative)
+        super(positive, negative);
     }
     
     copy()
@@ -206,7 +197,7 @@ class RationalSum extends RationalSubExpression
     
     getAdded(subExpression, reverse = false)
     {
-        if(subExpression.isSum())
+        if(subExpression.getType() === "sum")
         {
             this.combine(subExpression, reverse);
         }
@@ -218,9 +209,9 @@ class RationalSum extends RationalSubExpression
         return this;
     }
     
-    isSum()
+    getType()
     {
-        return true;
+        return "sum";
     }
 }
 
