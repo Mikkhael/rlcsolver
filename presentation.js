@@ -15,27 +15,27 @@ class CircutCanvas
 
 const LatexConverter = {};
 
-LatexConverter.RationalExpression = function(expression)
+LatexConverter.RationalExpression = function(expression, namedValueLookup = {})
 {
 	switch(expression.getType())
 	{
-		case "sum": return LatexConverter.RationalSum(expression.subExpression);
-		case "product": return LatexConverter.RationalProduct(expression.subExpression);
+		case "sum": return LatexConverter.RationalSum(expression.subExpression, namedValueLookup);
+		case "product": return LatexConverter.RationalProduct(expression.subExpression, namedValueLookup);
 	}
 }
 
-LatexConverter.RationalSum = function(sum)
+LatexConverter.RationalSum = function(sum, namedValueLookup = {})
 {
 	if(sum.isEmpty())
 	{
 		return "0";
 	}
 	
-	let sumLatex = LatexConverter.RationalExpression(sum.summants[0]);
+	let sumLatex = LatexConverter.RationalExpression(sum.summants[0], namedValueLookup);
 	
 	for(let i=1; i<sum.summants.length; i++)
 	{
-		let temp = LatexConverter.RationalExpression(sum.summants[i]);
+		let temp = LatexConverter.RationalExpression(sum.summants[i], namedValueLookup);
 		if(temp[0] !== "-")
 		{
 			sumLatex += "+";
@@ -46,127 +46,98 @@ LatexConverter.RationalSum = function(sum)
 	return sumLatex;
 }
 
-LatexConverter.RationalProduct = function(product)
+LatexConverter.RationalProduct = function(product, namedValueLookup = {})
 {	
 	if(product.monomial.isZero())
 	{
 		return "0";
 	}
 	
-	let monomialLatex = LatexConverter.RationalMonomial(product.monomial);
-	
 	if(product.isMonomial())
 	{
-		return monomialLatex;
+		return LatexConverter.RationalMonomial(product.monomial, false, namedValueLookup);
 	}
 	
-	let denominatorLatex, numeratorLatex;
+	let denominatorLatex = product.denominator.map(x => LatexConverter.RationalExpression(x, namedValueLookup));
+	if(product.denominator.length > 1)
+	{
+		denominatorLatex = denominatorLatex.map(x => '('+x+')');
+	}
+	denominatorLatex = denominatorLatex.join("");
 	
-	if(product.denominator.length === 0)
+	let numeratorLatex = product.numerator.map(x => LatexConverter.RationalExpression(x, namedValueLookup));
+	if(product.numerator.length > 1)
 	{
-		denominatorLatex = "";
+		numeratorLatex = numeratorLatex.map(x => '('+x+')');
 	}
-	else if(product.denominator.length === 1)
-	{
-		denominatorLatex = LatexConverter.RationalExpression(product.denominator[0]);
-	}
-	else
-	{
-		denominatorLatex = product.denominator.map(x => `(${LatexConverter.RationalExpression(x)})`).join("");
-	}
+	numeratorLatex = numeratorLatex.join("");
 	
-	if(product.numerator.length === 0)
-	{
-		numeratorLatex = "";
-	}
-	else if(product.numerator.length === 1)
-	{
-		numeratorLatex = LatexConverter.RationalExpression(product.numerator[0]);
-	}
-	else
-	{
-		numeratorLatex = product.numerator.map(x => `(${LatexConverter.RationalExpression(x)})`).join("");
-	}
-	
-	
-	
+	let monomialLatex;
 	if(product.hasNumerator())
 	{
-		
+		monomialLatex = LatexConverter.RationalMonomial(product.monomial, true, namedValueLookup);
 		if(product.hasDenominator())
 		{
-			
-			if(monomialLatex === "1")
-			{
-				monomialLatex = "";
-			}
-			else if(monomialLatex === "-1")
-			{
-				monomialLatex = "-";
-			}
-			else if(product.monomial.isNumeric())
+			if(product.monomial.isNumeric() && !product.monomial.isOne() && !product.monomial.isNegativeOne())
 			{
 				monomialLatex += " \\cdot ";
 			}
 			return ` ${monomialLatex}\\frac{${numeratorLatex}}{${denominatorLatex}} `;
 		}
-		
-		if(monomialLatex === "1")
-		{
-			monomialLatex = "";
-		}
-		else if(monomialLatex === "-1")
-		{
-			monomialLatex = "-";
-		}
 		return ` ${monomialLatex} (${numeratorLatex}) `
 	}
-	
+	monomialLatex = LatexConverter.RationalMonomial(product.monomial, false, namedValueLookup);
 	return ` \\frac{${monomialLatex}}{${denominatorLatex}} `;
 	
 }
 
-LatexConverter.RationalMonomial = function(monomial)
+LatexConverter.RationalMonomial = function(monomial, skipIdentity = false, namedValueLookup = {})
 {
-	let numericLatex = LatexConverter.NumericValue(monomial.numericValue);
 	
 	if(monomial.isNumeric())
 	{
-		return numericLatex;
+		return LatexConverter.NumericValue(monomial.numericValue, skipIdentity);
 	}
 	
-	let namedValueProductLatex = LatexConverter.NamedValueProduct(monomial.namedValueProduct);
-	
-	if(numericLatex === "1")
-	{
-		return namedValueProductLatex;
-	}
-	
-	if(numericLatex === "-1")
-	{
-		return "-" + namedValueProductLatex;
-	}
-	
+	let numericLatex = LatexConverter.NumericValue(monomial.numericValue, true);
+	let namedValueProductLatex = LatexConverter.NamedValueProduct(monomial.namedValueProduct, namedValueLookup);
+		
 	return numericLatex + namedValueProductLatex;
 }
 
-LatexConverter.NumericValue = function(numericValue)
+LatexConverter.NumericValue = function(numericValue, skipIdentity = false)
 {
+	if(skipIdentity)
+	{
+		if(numericValue.isOne())
+		{
+			return "";
+		}
+		if(numericValue.isNegativeOne())
+		{
+			return "-";
+		}
+	}
+	
 	return "" + numericValue.value;
 }
 
-LatexConverter.NamedValueProduct = function(namedValueProduct)
+LatexConverter.NamedValueProduct = function(namedValueProduct, namedValueLookup = {})
 {
 	if(namedValueProduct.isEmpty())
 	{
 		return "";
 	}
 	
+	function getNamedValueString(id){return namedValueLookup[id] || `[${id}]`};	
 	let namedValueProductLatex = "";
-	
 	for(let id in namedValueProduct.data)
 	{
-		namedValueProductLatex += `[${id}]^{${namedValueProduct.data[id]}}`;
+		namedValueProductLatex += getNamedValueString(id);
+		if(namedValueProduct.data[id] !== 1)
+		{
+			namedValueProductLatex += "^{" + namedValueProduct.data[id] + "}";
+		}
 	}
 	
 	return namedValueProductLatex;

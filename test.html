@@ -24,9 +24,9 @@
         let exp4 = exp3.copy().addMonomial(RationalMonomial.create(7));
         let exp5 = exp4.copy().addMonomial(RationalMonomial.create(8, {5 : 5}));
         let exp6 = exp5.copy().addMonomial(RationalMonomial.create(9));
-        let exp7 = exp6.copy().multiplyMonomial(RationalMonomial.create(1, {5: 2}), true);
+        let exp7 = exp6.copy().multiplyMonomial(RationalMonomial.create(1), true);
         let exp8 = exp7.copy().multiplyMonomial(RationalMonomial.create(-1));
-        let exp9 = exp8.copy().multiplyMonomial(RationalMonomial.create(-1, {5: 2}));
+        let exp9 = exp8.copy().multiplyMonomial(RationalMonomial.create(-1));
         let exp10 = exp9.copy().multiplyMonomial(RationalMonomial.create(-1));
         
         console.log(LatexConverter.RationalExpression(exp1));
@@ -67,7 +67,7 @@
             )
         );
         
-        console.log(LatexConverter.RationalExpression(exp11));
+        console.log(LatexConverter.RationalExpression(exp11, {1: "A_1", 2: "A_2", A: "A", 3: "(u_2 - u_1)"}));
         
     </script>
     
