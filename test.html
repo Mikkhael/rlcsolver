@@ -18,70 +18,19 @@
     
     <script>
         
-        let exp1 = new RationalExpression(
-            new RationalMonomial(
-                new NumericValue(14), 
-                new NamedValueProduct({1: 2, 2: -1})
-            ),
-            new RationalSumProduct([
-                new RationalSum([
-                    new RationalExpression(
-                        new RationalMonomial(
-                            new NumericValue(1),
-                            new NamedValueProduct({1:1})
-                        )
-                    ),
-                    new RationalExpression(
-                        new RationalMonomial(
-                            new NumericValue(-1),
-                            new NamedValueProduct({2:1})
-                        )
-                    ),
-                ])
-            ])
-        );
-        
-        let exp2 = new RationalExpression(
-            new RationalMonomial(
-                new NumericValue(3), 
-                new NamedValueProduct({2: 2, 3: 1})
-            ),
-            new RationalSumProduct([
-                new RationalSum([
-                    new RationalExpression(
-                        new RationalMonomial(
-                            new NumericValue(42),
-                            new NamedValueProduct({1:1})
-                        )
-                    )
-                ])
-            ]),
-            new RationalSumProduct([
-                new RationalSum([
-                    new RationalExpression(
-                        new RationalMonomial(
-                            new NumericValue(1),
-                            new NamedValueProduct({2:1})
-                        )
-                    ),
-                    new RationalExpression(
-                        new RationalMonomial(
-                            new NumericValue(50)
-                        )
-                    ),
-                ])
-            ])
-        );
-        
-        let exp3 = exp1.copy();
-        exp3.multiplyByExpression(exp2)
-        let exp4 = exp2.copy();
-        exp4.multiplyByExpression(exp1);
+        let exp1 = new RationalExpression();
+        let exp2 = exp1.copy().multiplyMonomial(RationalMonomial.create(5, {1: 2, 2: -1}));
+        let exp3 = exp2.copy().multiplyMonomial(RationalMonomial.create(-2, {2: 4, 3: 1}));
+        let exp4 = exp3.copy().addMonomial(RationalMonomial.create(7));
+        let exp5 = exp4.copy().addMonomial(RationalMonomial.create(8, {5 : 5}));
+        let exp6 = exp5.copy().addMonomial(RationalMonomial.create(9));
         
         console.log(exp1);
         console.log(exp2);
         console.log(exp3);
         console.log(exp4);
+        console.log(exp5);
+        console.log(exp6);
         
     </script>
     

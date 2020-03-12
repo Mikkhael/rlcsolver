@@ -40,139 +40,192 @@ class LinearExpression
 
 class RationalExpression
 {
-    constructor(monomial = new RationalMonomial(), numerator = new RationalSumProduct(), denominator = new RationalSumProduct())
+    constructor(subExpression = new RationalProduct())
     {
-        this.monomial = monomial;
-        this.numerator = numerator;
-        this.denominator = denominator;
-        
-        this.checkIfIsFlat();
-        
-        // TODO normalization
+        // RationalSubExpression
+        this.subExpression = subExpression;
     }
     
-    checkIfIsFlat()
+    add(expression, reverse = false)
     {
-        return this.isFlat = this.numerator.isFlat && this.denominator.isFlat;
+        this.subExpression = this.subExpression.getAdded(expression.subExpression, reverse);
+        return this;
     }
     
-    isStrictlyFlat()
+    multiply(expression, reverse = false)
     {
-        return this.isFlat && this.denominator.isEmpty();
+        this.subExpression = this.subExpression.getMultiplied(expression.subExpression, reverse);
+        return this;
     }
     
-    flatten()
+    addMonomial(monomial, reverse = false)
     {
-        if(this.isFlat)
-        {
-            return;
-        }
-        
-        collapsedNumerator = this.numerator.flattenAndReturnCommonDenominator();
-        collapsedDenominator = this.numerator.flattenAndReturnCommonDenominator();
-        
-        this.numerator = collapsedNumerator[0];
-        this.denominator = collapsedDenominator[0];
-        
-        this.numerator.multiplyBySumProduct(collapsedDenominator[1]);
-        this.denominator.multiplyBySumProduct(collapsedNumerator[1]);
-        
-        this.isFlat = true;
+        return this.add(monomial.convertToExpression(), reverse);
     }
-    
-    
-    multiplyByExpression(other, reverse = false)
+    multiplyMonomial(monomial, reverse = false)
     {
-        this.monomial.multiplyByMonomial(other.monomial, reverse);
-        
-        if(reverse)
-        {
-            this.numerator.multiplyBySumProduct(other.denominator);
-            this.denominator.multiplyBySumProduct(other.numerator);
-        }
-        else
-        {
-            this.numerator.multiplyBySumProduct(other.numerator);
-            this.denominator.multiplyBySumProduct(other.denominator);
-        }
-        
-        this.checkIfIsFlat();
-    }
-    
-    // TODO reduce the fractions
-    
-    multiplyBySumProduct(other, reverse = false)
-    {
-        if(reverse)
-        {
-            this.numerator.multiplyBySumProduct(other);
-            this.isFlat = this.isFlat && this.numerator.isFlat();
-        }
-        else
-        {
-            this.denominator.multiplyBySumProduct(other);
-            this.isFlat = this.isFlat && this.denominator.isFlat();
-        }
-    }
-    
-    addExpression(other, reverse = false)
-    {
-        if(!this.isSum())
-        {
-            this.shiftIntoRationalSum();
-        }
-        
-        this.numerator.addExpression(other, reverse);
-        this.isFlat = this.numerator.isFlat;  // if it is a sum of flat expresisons, the expression would not be flat, even tho it possibly could be, so this can be possibly fixed
-    }
-    
-    negate()
-    {
-        this.monomial.negate();
-    }
-    
-    shiftIntoRationalSum()
-    {
-        let expressionCopy = this.copy();
-        
-        this.numerator = new RationalSumProduct([new RationalSum([expressionCopy])]);
-        
-        this.monomial = new RationalMonomial();
-        this.denominator = new RationalSumProduct();
-        
-        this.isFlat = this.isFlat && expressionCopy.denominator.isEmpty();
+        return this.multiply(monomial.convertToExpression(), reverse);
     }
     
     copy()
     {
-        return new RationalExpression(this.monomial.copy(), this.numerator.copy(), this.denominator.copy());
+        return this.subExpression.copy().toExpression();
     }
     
-    isZero()
+    isProduct()
     {
-        return this.monomial.isZero();
+        return this.subExpression.isProduct();
+    }
+    isSum()
+    {
+        return this.subExpression.isSum();
+    }
+}
+
+function copyExpressionsArray(arr)
+{
+    return arr.map(x => x.copy());
+}
+
+class RationalSubExpression
+{
+    constructor(forewardOperands = [], reversedOperands = [])
+    {
+        this.forewardOperands = forewardOperands;
+        this.reversedOperands = reversedOperands;
     }
     
-    isMonomial()
+    toExpression()
     {
-        return this.numerator.isEmpty() && this.denominator.isEmpty();
+        return new RationalExpression(this);
+    }
+    
+    combine(subExpression, reverse = false)
+    {
+        if(reverse)
+        {
+            this.forewardOperands.push(...copyExpressionsArray(subExpression.reversedOperands));
+            this.reversedOperands.push(...copyExpressionsArray(subExpression.forewardOperands));
+        }
+        else
+        {
+            this.forewardOperands.push(...copyExpressionsArray(subExpression.forewardOperands));
+            this.reversedOperands.push(...copyExpressionsArray(subExpression.reversedOperands));
+        }
+    }
+    
+    insert(subExpression, reverse = false)
+    {
+        if(reverse)
+        {
+            this.reversedOperands.push(subExpression.copy().toExpression());
+        }
+        else
+        {
+            this.forewardOperands.push(subExpression.copy().toExpression());
+        }
+    }
+    
+    isProduct()
+    {
+        return false;
     }
     
     isSum()
     {
-        return this.monomial.isOne() && this.denominator.isEmpty() && this.numerator.isSum();
-    }
-    
-    isNUmericValue()
-    {
-        return this.isMonomial() && this.monomial.isNUmericValue();
-    }
-    
-    isOne()
-    {
-        return this.isNUmericValue() && this.monomial.isOne();
+        return false;
     }
 }
+
+class RationalProduct extends RationalSubExpression
+{
+    constructor(numerator = [], denominator = [], monomial = new RationalMonomial())
+    {
+        super(numerator, denominator);
+        this.monomial = monomial;
+    }
+    
+    copy()
+    {
+        return new RationalProduct(copyExpressionsArray(this.forewardOperands), copyExpressionsArray(this.reversedOperands), this.monomial.copy());
+    }
+    
+    getMultiplied(subExpression, reverse = false)
+    {
+        if(subExpression.isProduct())
+        {
+            this.monomial.multiplyByMonomial(subExpression.monomial, reverse);
+            this.combine(subExpression, reverse);
+        }
+        else
+        {
+            this.insert(subExpression, reverse);
+        }
+        
+        return this;
+    }
+    
+    getAdded(subExpression, reverse = false)
+    {
+        if(reverse)
+        {
+            return new RationalSum([this.toExpression()], [subExpression.copy().toExpression()]);
+        }
+        
+        return new RationalSum([this.toExpression(), subExpression.copy().toExpression()]);
+    }
+    
+    isProduct()
+    {
+        return true;
+    }
+}
+
+
+class RationalSum extends RationalSubExpression
+{
+    constructor(positive = [], negative = [])
+    {
+        super(positive, negative)
+    }
+    
+    copy()
+    {
+        return new RationalSum(copyExpressionsArray(this.forewardOperands), copyExpressionsArray(this.reversedOperands));
+    }
+    
+    getMultiplied(subExpression, reverse = false)
+    {
+        if(reverse)
+        {
+            return new RationalProduct([this.toExpression()], [subExpression.copy().toExpression()]);
+        }
+        
+        return new RationalProduct([this.toExpression(), subExpression.copy().toExpression()]);
+    }
+    
+    getAdded(subExpression, reverse = false)
+    {
+        if(subExpression.isSum())
+        {
+            this.combine(subExpression, reverse);
+        }
+        else
+        {
+            this.insert(subExpression, reverse);
+        }
+        
+        return this;
+    }
+    
+    isSum()
+    {
+        return true;
+    }
+}
+
+
+
 
 class RationalMonomial
 {
@@ -186,6 +239,8 @@ class RationalMonomial
     {
         this.numericValue.multiplyByNumericValue(other.numericValue, reverse);
         this.namedValueProduct.multiplyByNamedValueProduct(other.namedValueProduct, reverse);
+        
+        return this;
     }
     
     copy()
@@ -202,179 +257,21 @@ class RationalMonomial
     {
         return this.numericValue.isOne();
     }
-}
-
-class RationalSumProduct
-{
-    constructor(factors = [])
-    {
-        // [RationalSum]
-        this.factors = factors;
-        
-        // (no nasted expression has a sum in the denominator)
-        this.checkIfIsFlat();
-    }
     
-    checkIfIsFlat()
+    convertToProduct()
     {
-        for(let factor of this.factors)
-        {
-            if(!factor.isFlat)
-            {
-                return this.isFlat = false;
-            }
-        }
-        return this.isFlat = true;
-    }
-    
-    flattenAndReturnCommonDenominator()
-    {
-        if(this.isFlat)
-        {
-            return new RationalSumProduct();
-        }
-        
-        let den = new RationalSumProduct();
-        
-        for(let sum of this.factors)
-        {
-            let tempDen = sum.flattenAndReturnCommonDenominator();
-            den.multiplyBySumProduct(tempDen);
-        }
-        
-        this.isFlat = true;
-        
-        return den;
-    }
-    
-    multiplyBySumProduct(other)
-    {
-        this.factors = this.factors.concat(other.copy().factors);
-        
-        this.isFlat = this.isFlat && other.isFlat;
-    }
-    
-    addSumProduct(other, reverse = false)
-    {
-        if(this.isSum() && other.isSum())
-        {
-            this.factors[0].addSum(other.factors[0], reverse);
-            this.isFlat = this.isFlat && other.isFlat;
-        }
-        
-        let thisExpression = this.convertToExpression();
-        let otherExpression = other.convertToExpression();
-        if(reverse)
-        {
-            other.negate();
-        }
-        this.factors = [new RationalSum([thisExpression, otherExpression])];
-        this.isFlat = this.factors[0].isFlat;
-    }
-    
-    addExpression(other, reverse = false)
-    {
-        addSumProduct(new RationalSumProduct([new RationalSum([other])]), reverse); // can be optimized
+        return new RationalProduct([], [], this);
     }
     
     convertToExpression()
     {
-        return new RationalExpression(new RationalMonomial(), this.copy(), new RationalSumProduct());
-    }
-    
-    copy()
-    {
-        return new RationalSumProduct(this.factors.map(x => x.copy()));
-    }
-    
-    isSum()
-    {
-        return this.factors.length === 1;
-    }
-    
-    isEmpty()
-    {
-        return this.factors.length === 0;
+        return new RationalExpression(this.convertToProduct());
     }
 }
 
-class RationalSum // TODO
+RationalMonomial.create = function(value = 1, data = {})
 {
-    constructor(summants = [])
-    {
-        // [RationalExpression]
-        this.summants = summants;
-        
-        // Sum of expressions with no denominator
-        this.isFlat = false;
-    }
-    
-    flattenAndReturnCommonDenominator()
-    {
-        let den = new RationalSumProduct();
-        
-        for(let summant of this.summants)
-        {
-            summant.flatten();
-            den.multiplyBySumProduct(summant.denominator);
-        }
-        
-        for(let summant of this.summants)
-        {
-            summant.multiplyBySumProduct(den);
-        }
-        
-        this.isFlat = true;
-    }
-    
-    addSum(other, reverse = false)
-    {
-        let otherCopy = other.copy();
-        if(reverse)
-        {
-            other.negate();
-        }
-        this.summants = this.summants.concat(otherCopy);
-        this.isFlat = this.isFlat && other.isFlat;
-    }
-    
-    addExpression(other, reverse = false)
-    {
-        let otherCopy = other.copy();
-        if(reverse)
-        {
-            other.negate();
-        }
-        this.summants.push(otherCopy);
-        this.isFlat = this.isFlat && other.isStrictlyFlat;
-    }
-    
-    multiplyAllByExpression(other, reverse = false)
-    {
-        for(let summant of this.summants)
-        {
-            summant.multiplyAllByExpression(other, reverse);
-        }
-        this.checkIfIsFlat();
-    }
-    
-    negate()
-    {
-        for(let expression of this.summants)
-        {
-            expression.negate();
-        }
-    }
-    
-    copy()
-    {
-        return new RationalSum(this.summants.map(x => x.copy()));
-    }
-    
-    isEmpty()
-    {
-        return this.summants.length === 0;
-    }
+    return new RationalMonomial(new NumericValue(value), new NamedValueProduct(data));
 }
 
 class NumericValue
