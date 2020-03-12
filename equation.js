@@ -58,6 +58,12 @@ class RationalExpression
         return this;
     }
     
+    negate()
+    {
+        this.subExpression.negate();
+        return this;
+    }
+    
     addMonomial(monomial, reverse = false)
     {
         return this.add(monomial.convertToExpression(), reverse);
@@ -85,41 +91,11 @@ function copyExpressionsArray(arr)
 
 class RationalSubExpression
 {
-    constructor(forewardOperands = [], reversedOperands = [])
-    {
-        this.forewardOperands = forewardOperands;
-        this.reversedOperands = reversedOperands;
-    }
+    constructor(){}
     
     toExpression()
     {
         return new RationalExpression(this);
-    }
-    
-    combine(subExpression, reverse = false)
-    {
-        if(reverse)
-        {
-            this.forewardOperands.push(...copyExpressionsArray(subExpression.reversedOperands));
-            this.reversedOperands.push(...copyExpressionsArray(subExpression.forewardOperands));
-        }
-        else
-        {
-            this.forewardOperands.push(...copyExpressionsArray(subExpression.forewardOperands));
-            this.reversedOperands.push(...copyExpressionsArray(subExpression.reversedOperands));
-        }
-    }
-    
-    insert(subExpression, reverse = false)
-    {
-        if(reverse)
-        {
-            this.reversedOperands.push(subExpression.copy().toExpression());
-        }
-        else
-        {
-            this.forewardOperands.push(subExpression.copy().toExpression());
-        }
     }
     
     getType()
@@ -132,13 +108,18 @@ class RationalProduct extends RationalSubExpression
 {
     constructor(numerator = [], denominator = [], monomial = new RationalMonomial())
     {
-        super(numerator, denominator);
+        super();
+        
+        // [RationalExpression]
+        this.numerator = numerator;
+        this.denominator = denominator;
+        
         this.monomial = monomial;
     }
     
     copy()
     {
-        return new RationalProduct(copyExpressionsArray(this.forewardOperands), copyExpressionsArray(this.reversedOperands), this.monomial.copy());
+        return new RationalProduct(copyExpressionsArray(this.numerator), copyExpressionsArray(this.denominator), this.monomial.copy());
     }
     
     getMultiplied(subExpression, reverse = false)
@@ -146,11 +127,27 @@ class RationalProduct extends RationalSubExpression
         if(subExpression.getType() === "product")
         {
             this.monomial.multiplyByMonomial(subExpression.monomial, reverse);
-            this.combine(subExpression, reverse);
+            if(reverse)
+            {
+                this.numerator.push(...copyExpressionsArray(subExpression.denominator));
+                this.denominator.push(...copyExpressionsArray(subExpression.numerator));
+            }
+            else
+            {
+                this.numerator.push(...copyExpressionsArray(subExpression.numerator));
+                this.denominator.push(...copyExpressionsArray(subExpression.denominator));
+            }
         }
         else
         {
-            this.insert(subExpression, reverse);
+            if(reverse)
+            {
+                this.denominator.push(subExpression.copy().toExpression());
+            }
+            else
+            {
+                this.numerator.push(subExpression.copy().toExpression());
+            }
         }
         
         return this;
@@ -160,29 +157,42 @@ class RationalProduct extends RationalSubExpression
     {
         if(reverse)
         {
-            return new RationalSum([this.toExpression()], [subExpression.copy().toExpression()]);
+            return new RationalSum([this.toExpression(), subExpression.copy().negate().toExpression()]);
         }
-        
         return new RationalSum([this.toExpression(), subExpression.copy().toExpression()]);
+    }
+    
+    normalize()
+    {
+        // TODO
+    }
+    
+    negate()
+    {
+        this.monomial.multiplyByMonomial(RationalMonomial.create(-1));
+        return this;
     }
     
     getType()
     {
-        return "product"
+        return "product";
     }
 }
 
 
 class RationalSum extends RationalSubExpression
 {
-    constructor(positive = [], negative = [])
+    constructor(summants = [])
     {
-        super(positive, negative);
+        super();
+        
+        // [RationalExpression]
+        this.summants = summants;
     }
     
     copy()
     {
-        return new RationalSum(copyExpressionsArray(this.forewardOperands), copyExpressionsArray(this.reversedOperands));
+        return new RationalSum(copyExpressionsArray(this.summants));
     }
     
     getMultiplied(subExpression, reverse = false)
@@ -191,7 +201,6 @@ class RationalSum extends RationalSubExpression
         {
             return new RationalProduct([this.toExpression()], [subExpression.copy().toExpression()]);
         }
-        
         return new RationalProduct([this.toExpression(), subExpression.copy().toExpression()]);
     }
     
@@ -199,13 +208,41 @@ class RationalSum extends RationalSubExpression
     {
         if(subExpression.getType() === "sum")
         {
-            this.combine(subExpression, reverse);
+            if(reverse)
+            {
+                this.summants.push(...subExpression.copy().negate().summants);
+            }
+            else
+            {
+                this.summants.push(...subExpression.copy().summants);
+            }
         }
         else
         {
-            this.insert(subExpression, reverse);
+            if(reverse)
+            {
+                this.summants.push(subExpression.copy().negate().toExpression());
+            }
+            else
+            {
+                this.summants.push(subExpression.copy().toExpression());
+            }
         }
         
+        return this;
+    }
+    
+    normalize()
+    {
+        // TODO
+    }
+    
+    negate()
+    {
+        for(let summant of this.summants)
+        {
+            summant.negate();
+        }
         return this;
     }
     
