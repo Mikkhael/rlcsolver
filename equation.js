@@ -2,8 +2,8 @@ class LinearEquationSystem
 {
     constructor()
     {
-        this.constantLookup = [];
-        this.variableLookup = [""];
+        this.constantLookup = {};
+        this.variableLookup = {};
         
         this.equations = [];
     }
@@ -28,15 +28,213 @@ class LinearEquation
     }
 }
 
-
-class LinearExpression
+class LinearSummant
 {
-    constructor(variables = {})
+    constructor(coefficient = new RationalExpression(), diffLevel = 0)
     {
-        // { ("free" | variableId) : RationalExpression }
-        this.variables = variables;
+        this.coefficient = coefficient;
+        this.diffLevel = diffLevel;
+    }
+    
+    isVariable()
+    {
+        return false;
+    }
+    
+    isExpression()
+    {
+        return false;
     }
 }
+
+class LinearVariable extends LinearSummant
+{
+    constructor(variableId, coefficient = new RationalExpression(), diffLevel = 0)
+    {
+        super(coefficient, diffLevel);
+        
+        this.variableId = variableId;
+    }
+    
+    copy()
+    {
+        return new LinearVariable(this.variableId, this.coefficient.copy(), this.diffLevel)
+    }
+    
+    isSimmilarTo(other)
+    {
+        return this.variableId === other.variableId && this.diffLevel === other.diffLevel;
+    }
+    
+    isVariable()
+    {
+        return true;
+    }
+}
+
+class LinearExpression extends LinearSummant
+{
+    constructor(variableSummants = [], freeSummants = [], coefficient = new RationalExpression(), diffLevel = 0)
+    {
+        super(coefficient, diffLevel)
+        
+        // [LinearSummant]
+        this.variableSummants = variableSummants;
+        
+        // [RationalExpression]
+        this.freeSummants = freeSummants;
+        
+        this.isGrouped = false;
+        this.isNasted = variableSummants.some(x => x.isExpression());
+    }
+    
+    isExpression()
+    {
+        return true;
+    }
+    
+    copy()
+    {
+        let res = new LinearExpression(copyArray(this.variableSummants), copyArray(this.freeSummants), this.coefficient.copy(), this.diffLevel);
+        res.isGrouped = this.isGrouped;
+        return res;
+    }
+    
+    deNaste(deep = true)
+    {
+        if(!this.isNasted)
+        {
+            return this;
+        }
+        
+        this.isGrouped = false;
+        this.isNasted = false;
+        
+        let newVariableSummants = [];
+        let newFreeSummants = [];
+        for(let i=0; i<this.variableSummants.length; i++)
+        {
+            let temp = this.variableSummants[i];
+            if(temp.isExpression())
+            {
+                temp.collapse();
+                
+                if(deep)
+                {
+                    temp.deNaste();
+                }
+                else if(temp.isNasted)
+                {
+                    this.isNasted = true;
+                }
+                
+                
+                newVariableSummants.push(...temp.variableSummants);
+                newFreeSummants.push(...temp.freeSummants);
+                this.variableSummants.splice(i, 1);
+                i--;
+            }
+        }
+        this.variableSummants.push(...newVariableSummants);
+        this.freeSummants.push(...newFreeSummants);
+        
+        return this;
+    }
+    
+    group()
+    {
+        if(this.isGrouped)
+        {
+            return this;
+        }
+        
+        this.deNaste();
+        
+        this.variableSummants.sort((a, b) => a.variableId - b.variableId || b.diffLevel - a.diffLevel);
+        
+        for(let i=1; i<this.variableSummants.length; i++)
+        {
+            let next = this.variableSummants[i];
+            let temp = this.variableSummants[i-1];
+            
+            if(temp.isSimmilarTo(next))
+            {
+                temp.coefficient.add(next.coefficient);
+                this.variableSummants.splice(i, 1);
+                i--;
+            }
+        }
+        
+        if(this.freeSummants.length > 1)
+        {
+            let free = new RationalExpression();
+            for(let summant of this.freeSummants)
+            {
+                free.add(summant);
+            }
+            this.freeSummants = [free];
+        }
+        
+        this.isGrouped = true;
+        
+        return this;
+    }
+    
+    collapse()
+    {
+        this.differenciate(this.diffLevel);
+        this.multiplyByRationalExpression(this.coefficient);
+        this.diffLevel = 0;
+        this.coefficient = new RationalExpression();
+        
+        return this;
+    }
+    
+    differenciate(n = 0)
+    {
+        if(n !== 0)
+        {
+            for(let summant of this.variableSummants)
+            {
+                summant.diffLevel += n;
+            }
+            this.freeSummants = [];
+        }
+        
+        return this;
+    }
+    
+    multiplyByRationalExpression(expression, reverse = false) // can be improved by checking if we multiply by one
+    {
+        for(let summant of this.variableSummants)
+        {
+            summant.coefficient.multiply(expression, reverse);
+        }
+        for(let summant of this.freeSummants)
+        {
+            summant.multiply(expression, reverse);
+        }
+        
+        return this;
+    }
+    
+    addLinearSummant(summant, reverse = false)
+    {
+        let summantCopy = summant.copy();
+        if(reverse)
+        {
+            summantCopy.multiplyByRationalExpression(RationalExpression.NegativeOne);
+        }
+        this.variableSummants.push(...summantCopy.variableSummants);
+        this.freeSummants.push(...summantCopy.freeSummants);
+        
+        this.isGrouped = false;
+        this.isNasted = this.isNasted || summant.isNasted;
+        
+        return this;
+    }
+}
+
 
 class RationalExpression
 {
@@ -73,6 +271,11 @@ class RationalExpression
         return this.multiply(monomial.convertToExpression(), reverse);
     }
     
+    substituteNamedValueWithMonomial(monomial)
+    {
+        // TODO
+    }
+    
     copy()
     {
         return this.subExpression.copy().toExpression();
@@ -84,7 +287,7 @@ class RationalExpression
     }
 }
 
-function copyExpressionsArray(arr)
+function copyArray(arr)
 {
     return arr.map(x => x.copy());
 }
@@ -119,7 +322,7 @@ class RationalProduct extends RationalSubExpression
     
     copy()
     {
-        return new RationalProduct(copyExpressionsArray(this.numerator), copyExpressionsArray(this.denominator), this.monomial.copy());
+        return new RationalProduct(copyArray(this.numerator), copyArray(this.denominator), this.monomial.copy());
     }
     
     getMultiplied(subExpression, reverse = false)
@@ -129,13 +332,13 @@ class RationalProduct extends RationalSubExpression
             this.monomial.multiplyByMonomial(subExpression.monomial, reverse);
             if(reverse)
             {
-                this.numerator.push(...copyExpressionsArray(subExpression.denominator));
-                this.denominator.push(...copyExpressionsArray(subExpression.numerator));
+                this.numerator.push(...copyArray(subExpression.denominator));
+                this.denominator.push(...copyArray(subExpression.numerator));
             }
             else
             {
-                this.numerator.push(...copyExpressionsArray(subExpression.numerator));
-                this.denominator.push(...copyExpressionsArray(subExpression.denominator));
+                this.numerator.push(...copyArray(subExpression.numerator));
+                this.denominator.push(...copyArray(subExpression.denominator));
             }
         }
         else
@@ -207,7 +410,7 @@ class RationalSum extends RationalSubExpression
     
     copy()
     {
-        return new RationalSum(copyExpressionsArray(this.summants));
+        return new RationalSum(copyArray(this.summants));
     }
     
     getMultiplied(subExpression, reverse = false)
@@ -325,11 +528,11 @@ class RationalMonomial
     {
         return new RationalExpression(this.convertToProduct());
     }
-}
-
-RationalMonomial.create = function(value = 1, data = {})
-{
-    return new RationalMonomial(new NumericValue(value), new NamedValueProduct(data));
+    
+    toExpression() // alias
+    {
+        return this.convertToExpression();
+    }
 }
 
 class NumericValue
@@ -449,3 +652,16 @@ class NamedValueProduct
         return Object.keys(this.data).length === 0;
     }
 }
+
+
+RationalMonomial.create = function(value = 1, data = {})
+{
+    return new RationalMonomial(new NumericValue(value), new NamedValueProduct(data));
+}
+RationalMonomial.NegativeOne = RationalMonomial.create(-1);
+RationalMonomial.One = RationalMonomial.create(1);
+RationalMonomial.Zero = RationalMonomial.create(0);
+
+RationalExpression.NegativeOne = RationalMonomial.create(-1).toExpression();
+RationalExpression.One = RationalMonomial.create(1).toExpression();
+RationalExpression.Zero = RationalMonomial.create(0).toExpression();

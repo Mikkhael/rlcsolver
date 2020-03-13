@@ -18,6 +18,7 @@
     
     <script>
         
+                
         let exp1 = new RationalExpression();
         let exp2 = exp1.copy().multiplyMonomial(RationalMonomial.create(5, {1: 2, 2: -1}));
         let exp3 = exp2.copy().multiplyMonomial(RationalMonomial.create(-2, {2: 4, 3: 1}));
@@ -68,6 +69,81 @@
         );
         
         console.log(LatexConverter.RationalExpression(exp11, {1: "A_1", 2: "A_2", A: "A", 3: "(u_2 - u_1)"}));
+            
+        console.log("----------------");
+        
+        let one = RationalExpression.One.copy();
+        let neg = RationalExpression.NegativeOne.copy();
+        let zero = RationalExpression.Zero.copy();
+        let c1 = RationalMonomial.create(14).toExpression();
+        let c2 = RationalMonomial.create(-3).toExpression();
+        let c3 = RationalMonomial.create(2, {1: 2}).toExpression();
+        let c4 = RationalMonomial.create(1, {1: -1}).toExpression();
+        let c5 = RationalMonomial.create(-1, {2: 1}).toExpression();
+        let c6 = RationalMonomial.create(1, {3: 1}).toExpression().addMonomial(RationalMonomial.create(1, {4: 1}));
+        
+        let l1 = new LinearExpression(
+            [
+                new LinearVariable(
+                    "a",
+                    c1.copy()
+                ),
+                new LinearVariable(
+                    "b",
+                    c2.copy()
+                ),
+                new LinearVariable(
+                    "b",
+                    c3.copy()
+                ),
+                new LinearExpression(
+                    [
+                        new LinearVariable(
+                            "v_1",
+                            RationalMonomial.create(2).toExpression()
+                        ),
+                        new LinearVariable(
+                            "v_2",
+                            RationalMonomial.create(-3).toExpression()
+                        )
+                    ]
+                ),
+                new LinearVariable(
+                    "a",
+                    neg.copy()
+                )
+            ],
+            [
+                c5.copy(),
+                c6.copy()
+            ]
+        );
+        
+        console.log("standard", l1.copy());
+        
+        l1.deNaste();
+        console.log("denasted", l1.copy());
+        
+        l1.group();
+        console.log("grouped", l1.copy());
+        
+        l1.addLinearSummant(new LinearExpression(
+           [
+               new LinearVariable(
+                   "a",
+                   c4.copy()
+               )               
+           ],
+           [
+               c4.copy()
+           ]
+        ));
+        
+        console.log("added", l1.copy());
+        
+        l1.group();
+        console.log("grouped", l1.copy());
+        
         
     </script>
     
