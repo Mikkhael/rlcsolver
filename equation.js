@@ -150,7 +150,16 @@ class LinearExpression extends LinearSummant
         
         this.deNaste();
         
-        this.variableSummants.sort((a, b) => a.variableId - b.variableId || b.diffLevel - a.diffLevel);
+        let sortFunction = function(a, b)
+        {
+            if(a.variableId < b.variableId)
+                return -1;
+            if(a.variableId > b.variableId)
+                return 1;
+            return b.diffLevel - a.diffLevel;
+        }
+        
+        this.variableSummants.sort(sortFunction);
         
         for(let i=1; i<this.variableSummants.length; i++)
         {
@@ -232,6 +241,11 @@ class LinearExpression extends LinearSummant
         this.isNasted = this.isNasted || summant.isNasted;
         
         return this;
+    }
+    
+    isEmpty()
+    {
+        return this.variableSummants.length === 0 && this.freeSummants.length === 0;
     }
 }
 
