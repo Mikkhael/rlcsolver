@@ -24,6 +24,31 @@ LatexConverter.RationalExpression = function(expression, namedValueLookup = {})
 	}
 }
 
+LatexConverter.RationalExpressionInProduct = function(expression, namedValueLookup = {})
+{
+	let res;
+	switch(expression.getType())
+	{
+		case "sum": res = LatexConverter.RationalSum(expression.subExpression, namedValueLookup); break;
+		case "product": res = LatexConverter.RationalProduct(expression.subExpression, namedValueLookup); break;
+	}
+	
+	if(res === "1")
+	{
+		return  "";
+	}
+	if(res === "-1")
+	{
+		return "-";
+	}
+	if(expression.getType() === "sum")
+	{
+		return "(" + res + ")";
+	}
+	
+	return res;
+}
+
 LatexConverter.RationalSum = function(sum, namedValueLookup = {})
 {
 	if(sum.isEmpty())
@@ -141,4 +166,86 @@ LatexConverter.NamedValueProduct = function(namedValueProduct, namedValueLookup 
 	}
 	
 	return namedValueProductLatex;
+}
+
+LatexConverter.TimeDifferential = function(rank = 1, variable = "")
+{
+	return ` \\frac{\\mathrm{d}${rank !== 1 ? "^"+rank : ""} ${variable}}{\\mathrm{d} t${rank !== 1 ? "^"+rank : ""}} `;
+}
+LatexConverter.TimeIntegral = function(rank = 1, inside = "")
+{
+	return ` \\${"i".repeat(rank)}nt_{0}^{t} ${inside} ${"\\mathrm{d}\\tau".repeat(rank)} `;
+}
+
+LatexConverter.LinearSummant = function(summant, constantsNameLookup = {}, variablesNameLookup = {})
+{
+	if(summant.isVariable())
+	{
+		return LatexConverter.LinearVariable(summant, constantsNameLookup, variablesNameLookup);
+	}
+	else if(summant.isExpression())
+	{
+		return LatexConverter.LinearExpression(summant, constantsNameLookup, variablesNameLookup)
+	}
+	return "";
+}
+
+LatexConverter.LinearExpression = function(expression, constantsNameLookup = {}, variablesNameLookup = {})
+{	
+	if(expression.isEmpty())
+	{
+		return "0";
+	}
+	
+	let coefficientLatex = LatexConverter.RationalExpressionInProduct(expression.coefficient, constantsNameLookup);
+	let insideLatex = "";
+	for(let summant of expression.variableSummants)
+	{
+		let summantLatex = LatexConverter.LinearSummant(summant, constantsNameLookup, variablesNameLookup);
+		if(summantLatex[0] !== "-"){
+			summantLatex = "+" + summantLatex;
+		}
+		insideLatex += summantLatex;
+	}
+	for(let summant of expression.freeSummants)
+	{
+		let summantLatex = LatexConverter.RationalExpression(summant, constantsNameLookup);
+		if(summantLatex[0] !== "-"){
+			summantLatex = "+" + summantLatex;
+		}
+		insideLatex += summantLatex;
+	}
+	if(insideLatex[0] === "+")
+	{
+		insideLatex = insideLatex.slice(1);
+	}
+	if(expression.diffLevel === 0)
+	{
+		if(coefficientLatex === "")
+		{
+			return insideLatex;
+		}
+		return coefficientLatex + "(" + insideLatex + ")";
+	}
+	if(expression.diffLevel > 0)
+	{
+		return coefficientLatex + LatexConverter.TimeDifferential(expression.diffLevel) + "(" + insideLatex + ")";
+	}
+	return coefficientLatex + LatexConverter.TimeIntegral(-expression.diffLevel, "(" + insideLatex + ")");
+	
+}
+
+LatexConverter.LinearVariable = function(variable, constantsNameLookup = {}, variablesNameLookup = {})
+{	
+	let coefficientLatex = LatexConverter.RationalExpressionInProduct(variable.coefficient, constantsNameLookup);
+	let variableLatex = variablesNameLookup[variable.variableId] || `[${variable.variableId}]`;
+	if(variable.diffLevel > 0)
+	{
+		return coefficientLatex + LatexConverter.TimeDifferential(variable.diffLevel, variableLatex);
+	}
+	else if(variable.diffLevel < 0)
+	{
+		return coefficientLatex + LatexConverter.TimeIntegral(-variable.diffLevel, variableLatex);
+	}
+	return coefficientLatex + variableLatex;
 }

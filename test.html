@@ -119,13 +119,21 @@
             ]
         );
         
+        l1.multiplyByRationalExpression(RationalMonomial.create(2).toExpression(), true);
+        
+        let variableLookup = {"a": "a", "b":"b", "v_1": "v_1", "v_2": "v_2"};
+        let constantsLookup = {1: "A", 2: "B", 3: "S", 4: "X"};
+        
         console.log("standard", l1.copy());
+        console.log(LatexConverter.LinearExpression(l1, constantsLookup, variableLookup));
         
         l1.deNaste();
         console.log("denasted", l1.copy());
+        console.log(LatexConverter.LinearExpression(l1, constantsLookup, variableLookup));
         
         l1.group();
         console.log("grouped", l1.copy());
+        console.log(LatexConverter.LinearExpression(l1, constantsLookup, variableLookup));
         
         l1.addLinearSummant(new LinearExpression(
            [
@@ -140,9 +148,11 @@
         ));
         
         console.log("added", l1.copy());
+        console.log(LatexConverter.LinearExpression(l1, constantsLookup, variableLookup));
         
         l1.group();
         console.log("grouped", l1.copy());
+        console.log(LatexConverter.LinearExpression(l1, constantsLookup, variableLookup));
         
         
     </script>
