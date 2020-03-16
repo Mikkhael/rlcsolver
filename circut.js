@@ -1,54 +1,132 @@
-class Connection
+class CircutElement
 {
-    constructor(destinationId, componnent)
+    constructor(type = CircutElement.Type.Node, connections = [], value = new NumericValue(0))
     {
-        this.destinationId = destinationId;
-        this.componnent = componnent;
+        // CircutElement.Type
+        this.type = type;
+        
+        // [ids]
+        this.connections = connections; // for Components must have length of 2
+        
+        // NumericValue
+        this.value = value;
+    }
+    
+    connectTo(id)
+    {
+        for(const x of this.connections)
+        {
+            if(x === id)
+            {
+                return;
+            }
+        }
+        
+        this.connections.push(id);
+    }
+    
+    deconnectFrom(id)
+    {
+        const index = this.connections.indexOf(id);
+        if(index > -1)
+        {
+            this.connections.splice(index, 1);
+        }
+    }
+    
+    isNode()
+    {
+        return this.type == CircutElement.Type.Node;
+    }
+    
+    isComponent()
+    {
+        return !this.isNode();
     }
 }
 
-class Component
-{
-    constructor(type = Component.Type.Wire, value = 0)
-    {
-        this.type = type;
-        this.value = value;
-    }
-}
-Component.prototype.Type = {
-    Wire: 0,
+CircutElement.Type = {
+    Node: 0,
     Resistor: 1,
     Capacitor: 2,
     Inductor: 3
 }
 
-
-class CircutNode
-{
-    constructor(id)
-    {
-        this.id = id;
-        this.connections = [];
-    }
-}
-
-
 class Circut
 {
-    constructor(nodes)
+    constructor(elements = {})
     {
-        if(nodes instanceof Array)
+        // {id: CircutElement}
+        this.elements = elements;
+        
+        
+        this._nextFreeId = Object.keys(elements).length;
+        this._releasedIds = [];
+    }
+    
+    connect(fromId, toId)
+    {
+        if(this.elements[fromId] && this.elements[toId])
         {
-            this.nodes = {};
-            for(let node of nodes)
+            this.elements[fromId].connectTo(toId);
+            this.elements[toId].connectTo(fromId);
+        }
+    }
+    
+    deconnectElement(id)
+    {
+        for(const connection of this.elements[id].connections)
+        {
+            if(this.elements.hasOwnProperty(connection))
             {
-                this.nodes[node.id] = node;
+                this.elements[connection].deconnectFrom(id);
+            }
+        }
+    }
+    
+    getNextId()
+    {
+        if(this._releasedIds.length > 0)
+        {
+            return this._releasedIds.pop();
+        }
+        return this._nextFreeId++;
+    }
+    
+    addElement(element)
+    {
+        const id = this.getNextId();
+        if(this.elements.hasOwnProperty(id))
+        {
+            alert("Internal Error");
+            throw "Internal Error";
+        }
+        this.elements[id] = element;
+    }
+    
+    replaceElement(id, element)
+    {
+        this.elements[id] = element;
+    }
+    
+    deleteElement(id, deconnect = true)
+    {
+        if(this.elements.hasOwnProperty(id))
+        {
+            if(deconnect)
+            {
+                deconnectElement(id);
             }
             
+            this._releasedIds.push(id);
+            delete this.elements[id];
         }
-        else // if Object
-        {
-            this.nodes = nodes;
-        }
+    }
+    
+    clear()
+    {
+        this.elements = {};
+        this._nextFreeId = 0;
+        this._releasedIds = [];
     }
 }
