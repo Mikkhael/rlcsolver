@@ -30,16 +30,16 @@
         let exp9 = exp8.copy().multiplyMonomial(RationalMonomial.create(-1));
         let exp10 = exp9.copy().multiplyMonomial(RationalMonomial.create(-1));
         
-        console.log(LatexConverter.RationalExpression(exp1));
-        console.log(LatexConverter.RationalExpression(exp2));
-        console.log(LatexConverter.RationalExpression(exp3));
-        console.log(LatexConverter.RationalExpression(exp4));
-        console.log(LatexConverter.RationalExpression(exp5));
-        console.log(LatexConverter.RationalExpression(exp6));
-        console.log(LatexConverter.RationalExpression(exp7));
-        console.log(LatexConverter.RationalExpression(exp8));
-        console.log(LatexConverter.RationalExpression(exp9));
-        console.log(LatexConverter.RationalExpression(exp10));
+        // console.log(LatexConverter.RationalExpression(exp1));
+        // console.log(LatexConverter.RationalExpression(exp2));
+        // console.log(LatexConverter.RationalExpression(exp3));
+        // console.log(LatexConverter.RationalExpression(exp4));
+        // console.log(LatexConverter.RationalExpression(exp5));
+        // console.log(LatexConverter.RationalExpression(exp6));
+        // console.log(LatexConverter.RationalExpression(exp7));
+        // console.log(LatexConverter.RationalExpression(exp8));
+        // console.log(LatexConverter.RationalExpression(exp9));
+        // console.log(LatexConverter.RationalExpression(exp10));
         
         
         let exp11 = new RationalExpression(
@@ -68,7 +68,7 @@
             )
         );
         
-        console.log(LatexConverter.RationalExpression(exp11, {1: "A_1", 2: "A_2", A: "A", 3: "(u_2 - u_1)"}));
+        //console.log(LatexConverter.RationalExpression(exp11, {1: "A_1", 2: "A_2", A: "A", 3: "(u_2 - u_1)"}));
             
         console.log("----------------");
         
@@ -124,16 +124,16 @@
         let variableLookup = {"a": "a", "b":"b", "v_1": "v_1", "v_2": "v_2"};
         let constantsLookup = {1: "A", 2: "B", 3: "S", 4: "X"};
         
-        console.log("standard", l1.copy());
-        console.log(LatexConverter.LinearExpression(l1, constantsLookup, variableLookup));
+        // console.log("standard", l1.copy());
+        // console.log(LatexConverter.LinearExpression(l1, constantsLookup, variableLookup));
         
-        l1.deNaste();
-        console.log("denasted", l1.copy());
-        console.log(LatexConverter.LinearExpression(l1, constantsLookup, variableLookup));
+        // l1.deNaste();
+        // console.log("denasted", l1.copy());
+        // console.log(LatexConverter.LinearExpression(l1, constantsLookup, variableLookup));
         
-        l1.group();
-        console.log("grouped", l1.copy());
-        console.log(LatexConverter.LinearExpression(l1, constantsLookup, variableLookup));
+        // l1.group();
+        // console.log("grouped", l1.copy());
+        // console.log(LatexConverter.LinearExpression(l1, constantsLookup, variableLookup));
         
         l1.addLinearSummant(new LinearExpression(
            [
@@ -147,12 +147,297 @@
            ]
         ));
         
-        console.log("added", l1.copy());
-        console.log(LatexConverter.LinearExpression(l1, constantsLookup, variableLookup));
+        // console.log("added", l1.copy());
+        // console.log(LatexConverter.LinearExpression(l1, constantsLookup, variableLookup));
         
-        l1.group();
-        console.log("grouped", l1.copy());
-        console.log(LatexConverter.LinearExpression(l1, constantsLookup, variableLookup));
+        // l1.group();
+        // console.log("grouped", l1.copy());
+        // console.log(LatexConverter.LinearExpression(l1, constantsLookup, variableLookup));
+        
+        
+        
+        
+        
+        
+        let cp1 = new RationalSum(
+            [
+                RationalMonomial.createExpression(123, {1: 1, 2: 2}),
+                RationalMonomial.createExpression(2),
+                RationalMonomial.createExpression(-2, {1: 1})
+            ]
+        );
+        let cp2 = new RationalSum(
+            [
+                RationalMonomial.createExpression(123, {1: 1, 2: 1}),
+                RationalMonomial.createExpression(2),
+                RationalMonomial.createExpression(-2, {1: 1})
+            ]
+        )
+        let cp3 = new RationalSum(
+            [
+                RationalMonomial.createExpression(123, {1: 1, 2: 2}),
+                RationalMonomial.createExpression(-2),
+                RationalMonomial.createExpression(-2, {1: 1})
+            ]
+        )
+        let cp4 = new RationalSum(
+            [
+                RationalMonomial.createExpression(-123, {1: 1, 2: 2}),
+                RationalMonomial.createExpression(-2),
+                RationalMonomial.createExpression(2, {1: 1})
+            ]
+        )
+        
+        let cexp1 = new RationalExpression(
+            new RationalProduct(
+                [
+                    new RationalSum(
+                        [
+                            RationalMonomial.createExpression(-2, {6:1}),
+                            RationalMonomial.createExpression(15)
+                        ]
+                    ).toExpression(),
+                    new RationalSum(
+                        [
+                            RationalMonomial.createExpression(3, {1:1}),
+                            RationalMonomial.createExpression(2, {2:1})
+                        ]
+                    ).toExpression()
+                ],
+                [
+                    new RationalSum(
+                        [
+                            RationalMonomial.createExpression(156, {12:12}),
+                            new RationalExpression(
+                                new RationalProduct(
+                                    [],
+                                    [
+                                        RationalMonomial.createExpression(3, {1:1}),
+                                        RationalMonomial.createExpression(2, {2:1})
+                                    ],
+                                    RationalMonomial.create(4, {2: 123})
+                                )
+                            )
+                        ]
+                    ).toExpression()
+                ],
+                RationalMonomial.create(4, {1:4, 2: 5})
+            )
+        );
+        
+        let cexp2 = new RationalExpression( // changed order
+            new RationalProduct(
+                [
+                    new RationalSum(
+                        [
+                            RationalMonomial.createExpression(3, {1:1}),
+                            RationalMonomial.createExpression(2, {2:1})
+                        ]
+                    ).toExpression(),
+                    new RationalSum(
+                        [
+                            RationalMonomial.createExpression(-2, {6:1}),
+                            RationalMonomial.createExpression(15)
+                        ]
+                    ).toExpression()
+                ],
+                [
+                    new RationalSum(
+                        [
+                            RationalMonomial.createExpression(156, {12:12}),
+                            new RationalExpression(
+                                new RationalProduct(
+                                    [],
+                                    [
+                                        RationalMonomial.createExpression(2, {2:1}),
+                                        RationalMonomial.createExpression(3, {1:1})
+                                    ],
+                                    RationalMonomial.create(4, {2: 123})
+                                )
+                            )
+                        ]
+                    ).toExpression()
+                ],
+                RationalMonomial.create(4, {1:4, 2: 5})
+            )
+        );
+        
+        let cexp3 = new RationalExpression(
+            new RationalProduct(
+                [
+                    new RationalSum(
+                        [
+                            RationalMonomial.createExpression(3, {1:1}),
+                            RationalMonomial.createExpression(2, {2:1})
+                        ]
+                    ).toExpression(),
+                    new RationalSum(
+                        [
+                            RationalMonomial.createExpression(-2, {6:1}),
+                            RationalMonomial.createExpression(15)
+                        ]
+                    ).toExpression()
+                ],
+                [
+                    new RationalSum(
+                        [
+                            RationalMonomial.createExpression(156, {11:12}), // 11 instead of 12
+                            new RationalExpression(
+                                new RationalProduct(
+                                    [],
+                                    [
+                                        RationalMonomial.createExpression(2, {2:1}),
+                                        RationalMonomial.createExpression(3, {1:1})
+                                    ],
+                                    RationalMonomial.create(4, {2: 123})
+                                )
+                            )
+                        ]
+                    ).toExpression()
+                ],
+                RationalMonomial.create(4, {1:4, 2: 5})
+            )
+        );
+        
+        let cexp4 = new RationalExpression(
+            new RationalProduct(
+                [
+                    new RationalSum(
+                        [
+                            RationalMonomial.createExpression(3, {1:1}),
+                            RationalMonomial.createExpression(2, {2:1})
+                        ]
+                    ).toExpression(),
+                    new RationalSum(
+                        [
+                            RationalMonomial.createExpression(2, {6:1}), // Negative
+                            RationalMonomial.createExpression(-15)
+                        ]
+                    ).toExpression()
+                ],
+                [
+                    new RationalSum(
+                        [
+                            RationalMonomial.createExpression(156, {12:12}),
+                            new RationalExpression(
+                                new RationalProduct(
+                                    [],
+                                    [
+                                        RationalMonomial.createExpression(2, {2:1}),
+                                        RationalMonomial.createExpression(3, {1:1})
+                                    ],
+                                    RationalMonomial.create(4, {2: 123})
+                                )
+                            )
+                        ]
+                    ).toExpression()
+                ],
+                RationalMonomial.create(4, {1:4, 2: 5})
+            )
+        );
+        
+        let cexp5 = new RationalExpression(
+            new RationalProduct(
+                [
+                    new RationalSum(
+                        [
+                            RationalMonomial.createExpression(3, {1:1}),
+                            RationalMonomial.createExpression(2, {2:1})
+                        ]
+                    ).toExpression(),
+                    new RationalSum(
+                        [
+                            RationalMonomial.createExpression(-2, {6:1}),
+                            RationalMonomial.createExpression(15)
+                        ]
+                    ).toExpression()
+                ],
+                [
+                    new RationalSum( // Negative
+                        [
+                            RationalMonomial.createExpression(-156, {12:12}),
+                            new RationalExpression(
+                                new RationalProduct(
+                                    [],
+                                    [
+                                        RationalMonomial.createExpression(3, {1:1}),
+                                        RationalMonomial.createExpression(-2, {2:1})
+                                    ],
+                                    RationalMonomial.create(4, {2: 123})
+                                )
+                            )
+                        ]
+                    ).toExpression()
+                ],
+                RationalMonomial.create(-4, {1:4, 2: 5}) // Negative
+            )
+        );
+        
+        let cpm1 = RationalMonomial.create(1);
+        let cpm2 = RationalMonomial.create(-1);
+        let cpm3 = RationalMonomial.create(2);
+        
+        let cpm4 = RationalMonomial.create(1, {1:1});
+        let cpm5 = RationalMonomial.create(1, {1:2});
+        let cpm6 = RationalMonomial.create(1, {1:1, 2:1});
+        let cpm7 = RationalMonomial.create(-1, {1:1});
+        let cpm8 = RationalMonomial.create(-2, {1:1});
+        
+        
+        let shortexp = new RationalExpression(
+            new RationalProduct(
+                [
+                    cexp1.copy()
+                ],
+                [
+                    cexp4.copy()
+                ]
+            )
+        );
+        
+        // console.log("-------- CompareWith --------");
+        
+        
+        // console.log(1,  cpm1.compareWith(cpm1));
+        // console.log(-1, cpm1.compareWith(cpm2));
+        // console.log(-1, cpm2.compareWith(cpm1));
+        // console.log(0,  cpm1.compareWith(cpm3));
+        // console.log(0,  cpm2.compareWith(cpm3));
+        
+        // console.log("---")
+        
+        // console.log(1,  cpm4.compareWith(cpm4));
+        // console.log(0, cpm4.compareWith(cpm5));
+        // console.log(0, cpm4.compareWith(cpm6));
+        // console.log(-1,  cpm4.compareWith(cpm7));
+        // console.log(0,  cpm4.compareWith(cpm8));
+        
+        // console.log("---")
+        
+        // console.log(1,  cp1.compareWith(cp1));
+        // console.log(1,  cp1.compareWith(cp1.copy()));
+        // console.log(0,  cp1.compareWith(cp2));
+        // console.log(0,  cp1.compareWith(cp3));
+        // console.log(-1, cp1.compareWith(cp4));
+        
+        // console.log("---")
+        
+        // console.log(1,  cexp1.compareWith(cexp1));
+        // console.log(1,  cexp1.compareWith(cexp2));
+        // console.log(0,  cexp1.compareWith(cexp3));
+        // console.log(-1, cexp1.compareWith(cexp4));
+        // console.log(1,  cexp1.compareWith(cexp5));
+        
+        // console.log("---")
+        
+        // console.log(shortexp.copy());
+        // shortexp.subExpression.refactor();
+        // console.log(shortexp.copy());
+        // console.log(LatexConverter.RationalExpression(shortexp));
+        // shortexp.subExpression.shorten();
+        // console.log(shortexp.copy());
+        // console.log(LatexConverter.RationalExpression(shortexp));
+        
         
         
     </script>

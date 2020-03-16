@@ -270,6 +270,15 @@ class RationalExpression
         return this;
     }
     
+    compareWith(other)
+    {
+        if(this.getType() === other.getType())
+        {
+            return this.subExpression.compareWith(other.subExpression);
+        }
+        return 0;
+    }
+    
     negate()
     {
         this.subExpression.negate();
@@ -288,6 +297,16 @@ class RationalExpression
     substituteNamedValueWithMonomial(monomial)
     {
         // TODO
+    }
+    
+    isProduct()
+    {
+        return this.subExpression.isProduct();
+    }
+    
+    isSum()
+    {
+        return this.subExpression.isSum();
     }
     
     copy()
@@ -315,6 +334,16 @@ class RationalSubExpression
         return new RationalExpression(this);
     }
     
+    isProduct()
+    {
+        return false;
+    }
+    
+    isSum()
+    {
+        return false;
+    }
+    
     getType()
     {
         return "none";
@@ -326,6 +355,25 @@ class RationalProduct extends RationalSubExpression
     constructor(numerator = [], denominator = [], monomial = new RationalMonomial())
     {
         super();
+        
+        for(let x of numerator)
+        {
+            if(!(x instanceof RationalExpression))
+            {
+                throw "Should Be Expression";
+            }
+        }
+        for(let x of denominator)
+        {
+            if(!(x instanceof RationalExpression))
+            {
+                throw "Should Be Expression";
+            }
+        }
+        if(!(monomial instanceof RationalMonomial))
+        {
+            throw "Should Be Monomial";
+        }
         
         // [RationalExpression]
         this.numerator = numerator;
@@ -379,14 +427,115 @@ class RationalProduct extends RationalSubExpression
         return new RationalSum([this.toExpression(), subExpression.copy().toExpression()]);
     }
     
-    normalize()
+    refactor()
     {
-        // TODO
+        let changed = false;
+        for(let i=0; i<this.numerator.length; i++)
+        {
+            let tempFactor = this.numerator[i];
+            if(tempFactor.isProduct())
+            {
+                changed = true;
+                this.numerator.splice(i, 1);
+                this.getMultiplied(tempFactor.subExpression);
+                i--;
+            }
+        }
+        for(let i=0; i<this.denominator.length; i++)
+        {
+            let tempFactor = this.denominator[i];
+            if(tempFactor.isProduct())
+            {
+                changed = true;
+                this.denominator.splice(i, 1);
+                this.getMultiplied(tempFactor.subExpression, true);
+                i--;
+            }
+        }
+        return changed;
+    }
+    
+    shorten()
+    {
+        let changed = false;
+        for(let i=0; i<this.numerator.length; i++)
+        {
+            let tempNum = this.numerator[i];
+            for(let j=0; j<this.denominator.length; j++)
+            {
+                let tempDen = this.denominator[j];
+                let divSign = tempNum.compareWith(tempDen);
+                if(divSign === 0)
+                {
+                    continue;
+                }
+                changed = true;
+                this.numerator.splice(i, 1);
+                this.denominator.splice(j, 1);
+                if(divSign < 0)
+                {
+                    this.negate();
+                }
+                i--;
+                break;
+            }
+        }
+    }
+    
+    compareWith(other)
+    {
+        if(this.numerator.length !== other.numerator.length || this.denominator.length !== other.denominator.length)
+        {
+            return 0;
+        }
+        let resSign = this.monomial.compareWith(other.monomial);
+        if(resSign === 0)
+        {
+            return 0;
+        }
+        
+        for(let factor of this.numerator)
+        {
+            let tempComp = resSign;
+            for(let otherFactor of other.numerator)
+            {
+                tempComp = factor.compareWith(otherFactor);
+                if(tempComp !== 0)
+                {
+                    resSign *= tempComp;
+                    break;
+                }
+            }
+            if(tempComp === 0)
+            {
+                return 0;
+            }
+        }
+        for(let factor of this.denominator)
+        {
+            let tempComp = resSign;
+            for(let otherFactor of other.denominator)
+            {
+                tempComp = factor.compareWith(otherFactor);
+                if(tempComp !== 0)
+                {
+                    resSign *= tempComp;
+                    break;
+                }
+            }
+            if(tempComp === 0)
+            {
+                return 0;
+            }        
+        }
+        return resSign;
+        
+        
     }
     
     negate()
     {
-        this.monomial.multiplyByMonomial(RationalMonomial.create(-1));
+        this.monomial.negate();
         return this;
     }
     
@@ -405,6 +554,11 @@ class RationalProduct extends RationalSubExpression
         return this.denominator.length > 0;
     }
     
+    isProduct()
+    {
+        return true;
+    }
+    
     getType()
     {
         return "product";
@@ -417,6 +571,15 @@ class RationalSum extends RationalSubExpression
     constructor(summants = [])
     {
         super();
+        
+        for(let x of summants)
+        {
+            if(!(x instanceof RationalExpression))
+            {
+                throw "Should Be Expression";
+            }
+        }
+        
         
         // [RationalExpression]
         this.summants = summants;
@@ -469,6 +632,47 @@ class RationalSum extends RationalSubExpression
         // TODO
     }
     
+    resummant()
+    {
+        // TODO
+    }
+    
+    compareWith(other)
+    {
+        if(this.summants.length !== other.summants.length)
+        {
+            return 0;
+        }
+        
+        let resSign = 0;
+        for(let summant of this.summants)
+        {
+            let tempComp;
+            for(let otherSummant of other.summants)
+            {
+                tempComp = summant.compareWith(otherSummant);
+                if(tempComp !== 0)
+                {
+                    if(tempComp !== resSign)
+                    {
+                        if(resSign === 0)
+                        {
+                            resSign = tempComp;
+                            break;
+                        }
+                        return 0;
+                    }
+                    break;
+                }
+            }
+            if(tempComp === 0)
+            {
+                return 0;
+            }
+        }
+        return resSign;
+    }
+    
     negate()
     {
         for(let summant of this.summants)
@@ -481,6 +685,11 @@ class RationalSum extends RationalSubExpression
     isEmpty()
     {
         return this.summants.length === 0;
+    }
+    
+    isSum()
+    {
+        return true;
     }
     
     getType()
@@ -511,6 +720,26 @@ class RationalMonomial
     copy()
     {
         return new RationalMonomial(this.numericValue.copy(), this.namedValueProduct.copy());
+    }
+    
+    compareWith(other)
+    {
+        let resSign = this.numericValue.compareWith(other.numericValue);
+        if(resSign === 0)
+        {
+            return 0;
+        }
+        if(!this.namedValueProduct.isTheSameAs(other.namedValueProduct))
+        {
+            return 0;
+        }
+        return resSign;
+    }
+    
+    negate()
+    {
+        this.numericValue.negate();
+        return this;
     }
     
     isZero()
@@ -571,6 +800,19 @@ class NumericValue
         {
             this.value *= other.value;
         }
+    }
+    
+    compareWith(other)
+    {
+        if(this.value === other.value)
+        {
+            return 1;
+        }
+        else if(this.value === -other.value)
+        {
+            return -1;
+        }
+        return 0;
     }
     
     addNumericValue(other, reverse = false)
@@ -661,6 +903,22 @@ class NamedValueProduct
         return res;
     }
     
+    isTheSameAs(other)
+    {
+        if(Object.keys(this.data).length !== Object.keys(other.data).length)
+        {
+            return false;
+        }
+        for(let key in this.data)
+        {
+            if(this.data[key] !== other.data[key])
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+    
     isEmpty()
     {
         return Object.keys(this.data).length === 0;
@@ -671,6 +929,10 @@ class NamedValueProduct
 RationalMonomial.create = function(value = 1, data = {})
 {
     return new RationalMonomial(new NumericValue(value), new NamedValueProduct(data));
+}
+RationalMonomial.createExpression = function(value = 1, data = {})
+{
+    return RationalMonomial.create(value, data).toExpression();
 }
 RationalMonomial.NegativeOne = RationalMonomial.create(-1);
 RationalMonomial.One = RationalMonomial.create(1);

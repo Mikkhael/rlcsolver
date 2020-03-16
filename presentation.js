@@ -51,6 +51,7 @@ LatexConverter.RationalExpressionInProduct = function(expression, namedValueLook
 
 LatexConverter.RationalSum = function(sum, namedValueLookup = {})
 {
+	
 	if(sum.isEmpty())
 	{
 		return "0";
