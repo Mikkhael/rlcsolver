@@ -427,6 +427,21 @@ class RationalProduct extends RationalSubExpression
         return new RationalSum([this.toExpression(), subExpression.copy().toExpression()]);
     }
     
+    normalize()
+    {
+        // TODO
+    }
+    
+    flattenAndReturnDenominator()
+    {
+        // TODO
+    }
+    
+    flattenSoft()
+    {
+        // TODO
+    }
+    
     refactor()
     {
         let changed = false;
@@ -628,6 +643,16 @@ class RationalSum extends RationalSubExpression
     }
     
     normalize()
+    {
+        // TODO
+    }
+    
+    flattenAndReturnDenominator()
+    {
+        // TODO
+    }
+    
+    flattenSoft()
     {
         // TODO
     }
