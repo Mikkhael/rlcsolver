@@ -1,18 +1,3 @@
-class CircutCanvas
-{
-	constructor(canvas)
-	{
-		this.canvas = canvas;
-		this.ctx = canvas.getContext("2d");
-	}
-}
-
-
-
-
-/// Equations
-
-
 const LatexConverter = {};
 
 LatexConverter.RationalExpression = function(expression, namedValueLookup = {})

@@ -42,7 +42,7 @@ class Circut
             this.nodes = {};
             for(let node of nodes)
             {
-                nodes[node.id] = node;
+                this.nodes[node.id] = node;
             }
             
         }
