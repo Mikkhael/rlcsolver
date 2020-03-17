@@ -299,6 +299,22 @@ class RationalExpression
         // TODO
     }
     
+    factorOutAndReturnFactor(propagate = true)
+    {
+        return this.subExpression.factorOutAndReturnFactor(propagate);
+    }
+    
+    getFactoredOut(propagate = true)
+    {
+        this.subExpression = this.subExpression.getFactoredOut(propagate);
+        return this;
+    }
+    
+    shorten(propagate = true)
+    {
+        this.subExpression.shorten(propagate);
+    }
+    
     flattenSoft()
     {
         this.subExpression.flattenSoft();
@@ -515,9 +531,20 @@ class RationalProduct extends RationalSubExpression
         return changed;
     }
     
-    shorten()
+    shorten(propagate = true)
     {
-        let changed = false;
+        if(propagate)
+        {
+            for(let factor of this.numerator)
+            {
+                factor.shorten();
+            }
+            for(let factor of this.denominator)
+            {
+                factor.shorten();
+            }
+        }
+        
         for(let i=0; i<this.numerator.length; i++)
         {
             let tempNum = this.numerator[i];
@@ -529,7 +556,6 @@ class RationalProduct extends RationalSubExpression
                 {
                     continue;
                 }
-                changed = true;
                 this.numerator.splice(i, 1);
                 this.denominator.splice(j, 1);
                 if(divSign < 0)
@@ -540,6 +566,66 @@ class RationalProduct extends RationalSubExpression
                 break;
             }
         }
+    }
+    
+    factorOutAndReturnFactor(propagate)
+    {
+        if(propagate)
+        {
+            let mul = new RationalProduct();
+            for(let factor of this.numerator)
+            {
+                mul.getMultiplied(factor.factorOutAndReturnFactor(propagate));
+            }
+            for(let factor of this.denominator)
+            {
+                mul.getMultiplied(factor.factorOutAndReturnFactor(propagate), true);
+            }
+            this.getMultiplied(mul);
+        }
+        return new RationalProduct();
+    }
+    
+    getFactoredOut(propagate)
+    {
+        this.factorOutAndReturnFactor(propagate);
+        return this;
+    }
+    
+    setCommonWith(product)
+    {
+        this.monomial.setCommonWith(product.monomial);
+        
+        let removal = (prop) =>
+        {
+            let usedIndecies = {};
+            for(let i=0; i<this[prop].length; i++)
+            {
+                let remove = true;
+                for(let j=0; j<product[prop].length; j++)
+                {
+                    if(usedIndecies[j])
+                    {
+                        continue;
+                    }
+                    
+                    if(this[prop][i].compareWith(product[prop][j]) !== 0)
+                    {
+                        usedIndecies[j] = true;
+                        remove = false;
+                        break;
+                    }
+                }
+                if(remove)
+                {
+                    this[prop].splice(i, 1);
+                    i--;
+                }
+            }
+        }
+        
+        removal("numerator");
+        removal("denominator");
     }
     
     compareWith(other)
@@ -604,6 +690,26 @@ class RationalProduct extends RationalSubExpression
         return this.numerator.length === 0 && this.denominator.length === 0;
     }
     
+    isZero()
+    {
+        return this.monomial.isZero();
+    }
+    
+    isOne()
+    {
+        return this.isMonomial() && this.monomial.isOne();
+    }
+    
+    isNegativeOne()
+    {
+        return this.isMonomial() && this.monomial.isNegativeOne();
+    }
+    
+    isSingular()
+    {
+        return this.isMonomial() && (this.monomial.isOne() && this.monomial.isNegativeOne());
+    }
+    
     hasNumerator()
     {
         return this.numerator.length > 0;
@@ -659,6 +765,14 @@ class RationalSum extends RationalSubExpression
         return new RationalProduct([this.toExpression(), subExpression.copy().toExpression()]);
     }
     
+    multiplySummants(subExpression, reverse = false)
+    {
+        for(let i=0; i<this.summants.length; i++)
+        {
+            this.summants[i].subExpression = this.summants[i].subExpression.getMultiplied(subExpression, reverse);
+        }
+    }
+    
     getAdded(subExpression, reverse = false)
     {
         if(subExpression.getType() === "sum")
@@ -692,6 +806,17 @@ class RationalSum extends RationalSubExpression
         // TODO
     }
     
+    shorten(propagate = true)
+    {
+        if(propagate)
+        {
+            for(let summant of this.summants)
+            {
+                summant.shorten(propagate);
+            }
+        }
+    }
+    
     flattenAndReturnDenominator()
     {
         let densArray = this.summants.map(x => x.flattenAndReturnDenominator() );
@@ -722,6 +847,57 @@ class RationalSum extends RationalSubExpression
         }
         
         return this;
+    }
+    
+    factorOutAndReturnFactor(propagate = true)
+    {
+        if(propagate)
+        {
+            for(let summant of this.summants)
+            {
+                summant.getFactoredOut(propagate);
+            }
+        }
+        
+        if(this.summants.length <= 1)
+        {
+            return new RationalProduct();
+        }
+        
+        let commonFactor = this.summants[0].subExpression.copy();
+        if(commonFactor.isSingular())
+        {
+            return new RationalProduct();
+        }
+        
+        for(let i=1; i<this.summants.length; i++)
+        {
+            let tempSummant = this.summants[i].subExpression;
+            commonFactor.setCommonWith(tempSummant);
+            if(commonFactor.isSingular())
+            {
+                return new RationalProduct();
+            }
+        }
+        
+        if(commonFactor.isSingular())
+        {
+            return new RationalProduct();
+        }
+        
+        this.multiplySummants(commonFactor, true);
+        return commonFactor;
+    }
+    
+    getFactoredOut(propagate = true)
+    {
+        let commonFactor = this.factorOutAndReturnFactor(propagate);
+        return this.getMultiplied(commonFactor);
+    }
+    
+    setCommonWith(factor)
+    {
+        throw "This should not be fired";
     }
     
     resummant()
@@ -814,6 +990,12 @@ class RationalMonomial
         return new RationalMonomial(this.numericValue.copy(), this.namedValueProduct.copy());
     }
     
+    setCommonWith(monomial)
+    {
+        this.numericValue.setCommonWith(monomial.numericValue);
+        this.namedValueProduct.setCommonWith(monomial.namedValueProduct);
+    }
+    
     compareWith(other)
     {
         let resSign = this.numericValue.compareWith(other.numericValue);
@@ -894,6 +1076,17 @@ class NumericValue
         }
     }
     
+    setCommonWith(numericValue) // can be improveed
+    {
+        if(this.isSingular() || !this.isInteger() || !numericValue.isInteger())
+        {
+            this.value = 1;
+            return;
+        }
+        
+        this.value = GCD(this.value, numericValue.value);
+    }
+    
     compareWith(other)
     {
         if(this.value === other.value)
@@ -929,6 +1122,11 @@ class NumericValue
         return this.value === 0;
     }
     
+    isInteger()
+    {
+        return Number.isInteger(this.value);
+    }
+    
     isOne()
     {
         return this.value === 1;
@@ -938,6 +1136,23 @@ class NumericValue
     {
         return this.value === -1;
     }
+    
+    isSingular()
+    {
+        return this.isOne() || this.isNegativeOne();
+    }
+}
+
+function GCD(a, b)
+{
+    let temp;
+    while(b !== 0)
+    {
+        temp = a % b;
+        a = b;
+        b = temp;
+    }
+    return a;
 }
 
 class NamedValueProduct
@@ -993,6 +1208,27 @@ class NamedValueProduct
         let res = new NamedValueProduct();
         res.data = {...this.data};
         return res;
+    }
+    
+    setCommonWith(namedValueProduct)
+    {
+        let keys = Object.keys(this.data)
+        for(let id of keys)
+        {
+            let otherValue = namedValueProduct.data[id];
+            if(!otherValue)
+            {
+                delete this.data[id];
+                continue;
+            }
+            let thisValue = this.data[id];
+            if(thisValue * otherValue <= 0)
+            {
+                delete this.data[id];
+                continue;
+            }
+            this.data[id] = Math.abs(thisValue) <= Math.abs(otherValue) ? thisValue : otherValue;
+        }
     }
     
     isTheSameAs(other)

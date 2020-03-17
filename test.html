@@ -543,6 +543,74 @@
         // console.log("soft", LatexConverter.RationalExpression(flattedSoftexp), flattedSoftexp);
         // console.log("hard", LatexConverter.RationalExpression(flattedHardexp), flattedHardexp);
         
+        let common1 = new RationalSum(
+            [
+                new RationalProduct(
+                    [
+                        new RationalSum(
+                            [
+                                RationalMonomial.createExpression(1, {1:1, 2:-1}),
+                                RationalMonomial.createExpression(1, {1:-1})
+                            ]
+                        ).toExpression(),
+                        new RationalSum(
+                            [
+                                RationalMonomial.createExpression(1),
+                                RationalMonomial.createExpression(1, {1:1, 2:-1})
+                            ]
+                        ).toExpression()
+                        
+                    ],
+                    [
+                        new RationalSum(
+                            [
+                                RationalMonomial.createExpression(4, {1:1, 2:-1}),
+                                RationalMonomial.createExpression(2, {1:-1})
+                            ]
+                        ).toExpression(),
+                        new RationalSum(
+                            [
+                                RationalMonomial.createExpression(2),
+                                RationalMonomial.createExpression(4, {1:1, 2:-1})
+                            ]
+                        ).toExpression()
+                    ],
+                    RationalMonomial.create(1024, {1:100, 2:10, 3:-10, 4:-100, 6:123})
+                ).toExpression(),
+                new RationalProduct(
+                    [
+                        new RationalSum(
+                            [
+                                RationalMonomial.createExpression(1),
+                                RationalMonomial.createExpression(1, {1:1, 2:-1})
+                            ]
+                        ).toExpression()
+                    ],
+                    [
+                        new RationalSum(
+                            [
+                                RationalMonomial.createExpression(2)
+                            ]
+                        ).toExpression()
+                    ],
+                    RationalMonomial.create(200, {1:50, 2:50, 3:-50, 4:-50, 5: 123})
+                ).toExpression()
+            ]
+        );
+        
+        let common1factored = common1.copy().getFactoredOut();
+        let common1factoredshorted = common1factored.copy()
+        common1factoredshorted.shorten();
+        let common1factoredflatted = common1factoredshorted.copy().toExpression();
+        common1factoredflatted.flattenHard();
+        common1factoredflatted.shorten();
+        common1factoredflatted.getFactoredOut();
+        
+        // console.log("---------- Factoring out ------- ");
+        // console.log("before", common1.copy(), LatexConverter.RationalSum(common1));
+        // console.log("after", common1factored.copy(), LatexConverter.RationalProduct(common1factored));
+        // console.log("shortened", common1factoredshorted.copy(), LatexConverter.RationalProduct(common1factoredshorted));
+        // console.log("flatten", common1factoredflatted.copy(), LatexConverter.RationalExpression(common1factoredflatted));
         
         
     </script>
