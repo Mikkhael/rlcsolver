@@ -299,6 +299,24 @@ class RationalExpression
         // TODO
     }
     
+    flattenSoft()
+    {
+        this.subExpression.flattenSoft();
+        return this;
+    }
+    
+    flattenHard()
+    {
+        let den = this.subExpression.flattenAndReturnDenominator();
+        this.subExpression = this.subExpression.getMultiplied(den, true);
+        return this;
+    }
+    
+    flattenAndReturnDenominator()
+    {
+        return this.subExpression.flattenAndReturnDenominator();
+    }
+    
     isProduct()
     {
         return this.subExpression.isProduct();
@@ -434,12 +452,39 @@ class RationalProduct extends RationalSubExpression
     
     flattenAndReturnDenominator()
     {
-        // TODO
+        this.flattenSoft();
+        let newDen = new RationalProduct();
+        
+        for(let factor of this.denominator)
+        {
+            newDen = newDen.getMultiplied(factor.subExpression);
+        }
+        
+        this.denominator = [];
+        
+        return newDen;
     }
     
     flattenSoft()
     {
-        // TODO
+        let numDiv = new RationalProduct();
+        let denDiv = new RationalProduct();
+        
+        for(let factor of this.numerator)
+        {
+            const div = factor.subExpression.flattenAndReturnDenominator();
+            numDiv = numDiv.getMultiplied(div);
+        }
+        for(let factor of this.denominator)
+        {
+            const div = factor.subExpression.flattenAndReturnDenominator();
+            denDiv = denDiv.getMultiplied(div);
+        }
+        
+        this.getMultiplied(numDiv, true);
+        this.getMultiplied(denDiv, false);
+        
+        return this;
     }
     
     refactor()
@@ -649,12 +694,34 @@ class RationalSum extends RationalSubExpression
     
     flattenAndReturnDenominator()
     {
-        // TODO
+        let densArray = this.summants.map(x => x.flattenAndReturnDenominator() );
+        let resDen = new RationalProduct();
+        for(let i=0; i<this.summants.length; i++)
+        {
+            for(let j=0; j<densArray.length; j++)
+            {
+                if(i === j)
+                {
+                    continue;
+                }
+                this.summants[i].multiply(densArray[j].toExpression());
+            }
+        }
+        for(let den of densArray)
+        {
+            resDen = resDen.getMultiplied(den);
+        }
+        return resDen;
     }
     
     flattenSoft()
     {
-        // TODO
+        for(let summant of this.summants)
+        {
+            summant.flattenSoft();
+        }
+        
+        return this;
     }
     
     resummant()

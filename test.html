@@ -152,12 +152,7 @@
         
         // l1.group();
         // console.log("grouped", l1.copy());
-        // console.log(LatexConverter.LinearExpression(l1, constantsLookup, variableLookup));
-        
-        
-        
-        
-        
+        // console.log(LatexConverter.LinearExpression(l1, constantsLookup, variableLookup));      
         
         let cp1 = new RationalSum(
             [
@@ -437,6 +432,116 @@
         // shortexp.subExpression.shorten();
         // console.log(shortexp.copy());
         // console.log(LatexConverter.RationalExpression(shortexp));
+        
+        
+        
+        console.log("--- Fatting ---")
+        
+        
+        let flatexp = new RationalExpression(
+            new RationalSum(
+                [
+                    new RationalExpression(
+                        new RationalProduct(
+                            [
+                                new RationalExpression(
+                                    new RationalSum(
+                                        [
+                                            RationalMonomial.createExpression(5, {1:1}),
+                                            RationalMonomial.createExpression(5, {1:1, 2:-1})
+                                        ]
+                                    )
+                                ),
+                                new RationalExpression(
+                                    new RationalSum(
+                                        [
+                                            RationalMonomial.createExpression(1, {1:1}),
+                                            RationalMonomial.createExpression(10),
+                                            new RationalExpression(
+                                                new RationalProduct(
+                                                    [
+                                                        new RationalExpression(
+                                                            new RationalSum(
+                                                                [
+                                                                    RationalMonomial.createExpression(1, {A: 1}),
+                                                                    RationalMonomial.createExpression(1, {B: 1}),
+                                                                    RationalMonomial.createExpression(1, {C: 1})
+                                                                ]
+                                                            )
+                                                        )
+                                                    ]
+                                                )
+                                            )
+                                        ]
+                                    )
+                                ),
+                                new RationalExpression(
+                                    new RationalSum(
+                                        [
+                                            RationalMonomial.createExpression(1, {A: 2}),
+                                            RationalMonomial.createExpression(1, {B: 1}),
+                                            RationalMonomial.createExpression(1, {C: -1})
+                                        ]
+                                    )
+                                )
+                            ],
+                            [
+                                new RationalExpression(
+                                    new RationalSum(
+                                        [
+                                            RationalMonomial.createExpression(1, {1:1}),
+                                            RationalMonomial.createExpression(10),
+                                            new RationalExpression(
+                                                new RationalProduct(
+                                                    [
+                                                        new RationalExpression(
+                                                            new RationalSum(
+                                                                [
+                                                                    RationalMonomial.createExpression(4, {A: 1}),
+                                                                    RationalMonomial.createExpression(3, {B: 1}),
+                                                                    RationalMonomial.createExpression(2, {C: 1})
+                                                                ]
+                                                            )
+                                                        )
+                                                    ],
+                                                    [
+                                                        new RationalExpression(
+                                                            new RationalSum(
+                                                                [
+                                                                    RationalMonomial.createExpression(1, {"DEN": 1}),
+                                                                    RationalMonomial.createExpression(-1, {"OMIN": 1})
+                                                                ]
+                                                            )
+                                                        )
+                                                    ],
+                                                    RationalMonomial.create(42)
+                                                )
+                                            )
+                                        ]
+                                    )
+                                ),
+                                new RationalExpression(
+                                    new RationalSum(
+                                        [
+                                            RationalMonomial.createExpression(2, {A: 2}),
+                                            RationalMonomial.createExpression(2, {B: 1}),
+                                            RationalMonomial.createExpression(1, {C: -1})
+                                        ]
+                                    )
+                                )
+                            ]
+                        )
+                    )
+                ]
+            )
+        );
+        
+        let flattedSoftexp = flatexp.copy().flattenSoft();
+        let flattedHardexp = flatexp.copy().flattenHard();
+        
+        // console.log("before", LatexConverter.RationalExpression(flatexp));
+        // console.log("soft", LatexConverter.RationalExpression(flattedSoftexp), flattedSoftexp);
+        // console.log("hard", LatexConverter.RationalExpression(flattedHardexp), flattedHardexp);
         
         
         
