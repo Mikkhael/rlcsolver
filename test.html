@@ -152,7 +152,7 @@
         
         // l1.group();
         // console.log("grouped", l1.copy());
-        // console.log(LatexConverter.LinearExpression(l1, constantsLookup, variableLookup));      
+        // console.log(LatexConverter.LinearExpression(l1, constantsLookup, variableLookup));
         
         let cp1 = new RationalSum(
             [
@@ -536,11 +536,11 @@
         let flattedHardexp = flatexp.copy().flattenHard();
         
         
-        // console.log("--- Flatting ---")
+        console.log("--- Flatting ---")
         
-        // console.log("before", LatexConverter.RationalExpression(flatexp));
-        // console.log("soft", LatexConverter.RationalExpression(flattedSoftexp), flattedSoftexp);
-        // console.log("hard", LatexConverter.RationalExpression(flattedHardexp), flattedHardexp);
+        console.log("before", LatexConverter.RationalExpression(flatexp));
+        console.log("soft", LatexConverter.RationalExpression(flattedSoftexp), flattedSoftexp);
+        console.log("hard", LatexConverter.RationalExpression(flattedHardexp), flattedHardexp);
         
         let common1 = new RationalSum(
             [
@@ -603,7 +603,7 @@
         let common1factoredflatted = common1factoredshorted.copy().toExpression();
         common1factoredflatted.flattenHard();
         common1factoredflatted.shorten();
-        common1factoredflatted.getFactoredOut();
+        common1factoredflatted.factorOut();
         
         // console.log("---------- Factoring out ------- ");
         

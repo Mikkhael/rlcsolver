@@ -243,6 +243,50 @@ class LinearExpression extends LinearSummant
         return this;
     }
     
+    forAllCoefficietnts(f)
+    {
+        for(let summant of this.variableSummants)
+        {
+            f(summant.coefficient, this);
+        }
+        for(let summant of this.freeSummants)
+        {
+            f(summant, this);
+        }
+    }
+    
+    fillterZeros()
+    {
+        for(let i=0; i<this.variableSummants.length; i++)
+        {
+            let temp = this.variableSummants[i].coefficient;
+            if(temp.isZero(true))
+            {
+                this.variableSummants.splice(i, 1);
+                i--;
+            }
+        }
+        for(let i=0; i<this.freeSummants.length; i++)
+        {
+            let temp = this.freeSummants[i];
+            if(temp.isZero(true))
+            {
+                this.freeSummants.splice(i, 1);
+                i--;
+            }
+        }
+    }
+    
+    normalizeAndSimplify(repetitions = 1)
+    {
+        this.collapse();
+        this.group();
+        this.forAllCoefficietnts(x => {
+            x.normalizeAndSimplify(repetitions); 
+        });
+        this.fillterZeros();
+    }
+    
     isEmpty()
     {
         return this.variableSummants.length === 0 && this.freeSummants.length === 0;
@@ -294,6 +338,18 @@ class RationalExpression
         return this.multiply(monomial.convertToExpression(), reverse);
     }
     
+    normalizeAndSimplify(repetitions = 1)
+    {
+        while(repetitions-- > 0)
+        {
+            this.normalize();
+            this.factorOut(true);
+            this.resummant(true);
+            this.shorten(true);
+            this.flattenSoft(true);
+        }
+    }
+    
     substituteNamedValueWithMonomial(monomial)
     {
         // TODO
@@ -309,7 +365,7 @@ class RationalExpression
         return this.subExpression.factorOutAndReturnFactor(propagate);
     }
     
-    getFactoredOut(propagate = true)
+    factorOut(propagate = true)
     {
         this.subExpression = this.subExpression.getFactoredOut(propagate);
         return this;
@@ -622,7 +678,7 @@ class RationalProduct extends RationalSubExpression
         return new RationalProduct();
     }
     
-    getFactoredOut(propagate)
+    getFactoredOut(propagate = true)
     {
         this.factorOutAndReturnFactor(propagate);
         return this;
@@ -940,7 +996,7 @@ class RationalSum extends RationalSubExpression
         {
             for(let summant of this.summants)
             {
-                summant.getFactoredOut(propagate);
+                summant.factorOut(propagate);
             }
         }
         
