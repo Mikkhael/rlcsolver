@@ -678,7 +678,41 @@
         // console.log("after", normalized.copy(), LatexConverter.RationalExpression(normalized));
         // console.log("reaplied", normalized2.copy(), LatexConverter.RationalExpression(normalized2));
         
+        let summ = new RationalSum(
+            [
+                RationalMonomial.createExpression(0),
+                RationalMonomial.createExpression(10),
+                RationalMonomial.createExpression(0),
+                RationalMonomial.createExpression(1.75, {1:1}),
+                RationalMonomial.createExpression(20, {1: 2}),
+                RationalMonomial.createExpression(10, {1: 1}),
+                RationalMonomial.createExpression(-5),
+                RationalMonomial.createExpression(0.75, {1:2, 2:1}),
+                RationalMonomial.createExpression(-5),
+                new RationalProduct(
+                    [
+                        new RationalSum(
+                            [
+                                RationalMonomial.createExpression(0),
+                                RationalMonomial.createExpression(-5),
+                                RationalMonomial.createExpression(10),
+                                RationalMonomial.createExpression(0),
+                                RationalMonomial.createExpression(-5),
+                            ]
+                        ).toExpression()
+                    ],
+                    [],
+                    RationalMonomial.create(12, {1: 1})
+                ).toExpression()
+            ]
+        ).toExpression();
         
+        let summresummed = summ.copy();
+        summresummed.resummant(true);
+        
+        // console.log("---- Resummation ---");
+        // console.log("before", summ.copy(), LatexConverter.RationalExpression(summ));
+        // console.log("after", summresummed.copy(), LatexConverter.RationalExpression(summresummed));
         
     </script>
     

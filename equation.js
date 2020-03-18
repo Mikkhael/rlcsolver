@@ -315,6 +315,12 @@ class RationalExpression
         return this;
     }
     
+    resummant(propagate = true)
+    {
+        this.subExpression.resummant(propagate);
+        return this;
+    }
+    
     shorten(propagate = true)
     {
         this.subExpression.shorten(propagate);
@@ -341,6 +347,16 @@ class RationalExpression
     isProduct()
     {
         return this.subExpression.isProduct();
+    }
+    
+    setZero()
+    {
+        return this.subExpression = RationalExpression.Zero.subExpression.copy();
+    }
+    
+    isZero(deep = false)
+    {
+        return this.subExpression.isZero(deep);
     }
     
     isSum()
@@ -648,27 +664,43 @@ class RationalProduct extends RationalSubExpression
         removal("denominator");
     }
     
-    compareWith(other)
+    resummant(propagate = true)
+    {
+        this.numerator.forEach( x=> x.subExpression.resummant(propagate) );
+        this.denominator.forEach( x=> x.subExpression.resummant(propagate) );
+        
+        if(this.isZero(true))
+        {
+            this.setZero();
+        }
+    }
+    
+    isSimmilarTo(other)
+    {
+        return this.compareWith(other, true);
+    }
+    
+    compareWith(other, allowMultiples = false)
     {
         if(this.numerator.length !== other.numerator.length || this.denominator.length !== other.denominator.length)
         {
             return 0;
         }
-        let resSign = this.monomial.compareWith(other.monomial);
-        if(resSign === 0)
+        let res = this.monomial.compareWith(other.monomial, allowMultiples);
+        if(res === 0)
         {
             return 0;
         }
         
         for(let factor of this.numerator)
         {
-            let tempComp = resSign;
+            let tempComp = res;
             for(let otherFactor of other.numerator)
             {
                 tempComp = factor.compareWith(otherFactor);
                 if(tempComp !== 0)
                 {
-                    resSign *= tempComp;
+                    res *= tempComp;
                     break;
                 }
             }
@@ -679,13 +711,13 @@ class RationalProduct extends RationalSubExpression
         }
         for(let factor of this.denominator)
         {
-            let tempComp = resSign;
+            let tempComp = res;
             for(let otherFactor of other.denominator)
             {
                 tempComp = factor.compareWith(otherFactor);
                 if(tempComp !== 0)
                 {
-                    resSign *= tempComp;
+                    res *= tempComp;
                     break;
                 }
             }
@@ -694,7 +726,7 @@ class RationalProduct extends RationalSubExpression
                 return 0;
             }        
         }
-        return resSign;
+        return res;
         
         
     }
@@ -705,14 +737,21 @@ class RationalProduct extends RationalSubExpression
         return this;
     }
     
+    setZero()
+    {
+        this.numerator = [];
+        this.denominator = [];
+        this.monomial.setZero();
+    }
+    
     isMonomial()
     {
         return this.numerator.length === 0 && this.denominator.length === 0;
     }
     
-    isZero()
+    isZero(deep = false)
     {
-        return this.monomial.isZero();
+        return this.monomial.isZero() || (deep && this.numerator.some(x => x.isZero(deep)));
     }
     
     isOne()
@@ -946,9 +985,53 @@ class RationalSum extends RationalSubExpression
         throw "This should not be fired";
     }
     
-    resummant()
+    fillterZeros(deep)
     {
-        // TODO
+        this.summants = this.summants.filter(x => !x.isZero(deep));
+    }
+    
+    resummant(propagate = true)
+    {
+        
+        if(propagate)
+        {
+            for(let summant of this.summants)
+            {
+                summant.resummant(propagate);
+            }
+        }
+        
+        this.fillterZeros(true);
+        
+        for(let i=0; i<this.summants.length; i++)
+        {
+            let tempBaseSummant = this.summants[i].subExpression;
+            if(!tempBaseSummant.isProduct())
+            {
+                continue;
+            }
+            for(let j=i+1; j<this.summants.length; j++)
+            {
+                let tempSummant = this.summants[j].subExpression;
+                if(tempSummant.isProduct())
+                {
+                    let sign = tempBaseSummant.isSimmilarTo(tempSummant);
+                    if(sign === 0)
+                    {
+                        continue;
+                    }
+                    tempBaseSummant.monomial.numericValue.addNumericValue(tempSummant.monomial.numericValue, sign < 0);
+                    this.summants.splice(j, 1);
+                    j--;
+                    if(tempBaseSummant.isZero())
+                    {
+                        this.summants.splice(i, 1);
+                        i--;
+                        break;
+                    }
+                }
+            }
+        }
     }
     
     compareWith(other)
@@ -994,6 +1077,11 @@ class RationalSum extends RationalSubExpression
             summant.negate();
         }
         return this;
+    }
+    
+    isZero(deep)
+    {
+        return this.isEmpty() || this.summants.all(x => x.isZero(deep));
     }
     
     isEmpty()
@@ -1042,8 +1130,18 @@ class RationalMonomial
         this.namedValueProduct.setCommonWith(monomial.namedValueProduct);
     }
     
-    compareWith(other)
+    isSimmilarTo(other)
     {
+        return this.compareWith(other, true) !== 0;
+    }
+    
+    compareWith(other, allowMultiples = false)
+    {
+        if(allowMultiples)
+        {
+            return this.namedValueProduct.isTheSameAs(other.namedValueProduct) ? 1 : 0;
+        }
+        
         let resSign = this.numericValue.compareWith(other.numericValue);
         if(resSign === 0)
         {
@@ -1060,6 +1158,12 @@ class RationalMonomial
     {
         this.numericValue.negate();
         return this;
+    }
+    
+    setZero()
+    {
+        this.namedValueProduct = new NamedValueProduct();
+        this.numericValue = NumericValue.Zero.copy();
     }
     
     isZero()
@@ -1299,6 +1403,10 @@ class NamedValueProduct
     }
 }
 
+
+NumericValue.NegativeOne = new NumericValue(-1);
+NumericValue.One = new NumericValue(1);
+NumericValue.Zero = new NumericValue(0);
 
 RationalMonomial.create = function(value = 1, data = {})
 {
