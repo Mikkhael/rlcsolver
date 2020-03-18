@@ -434,10 +434,6 @@
         // console.log(LatexConverter.RationalExpression(shortexp));
         
         
-        
-        console.log("--- Fatting ---")
-        
-        
         let flatexp = new RationalExpression(
             new RationalSum(
                 [
@@ -539,6 +535,9 @@
         let flattedSoftexp = flatexp.copy().flattenSoft();
         let flattedHardexp = flatexp.copy().flattenHard();
         
+        
+        // console.log("--- Flatting ---")
+        
         // console.log("before", LatexConverter.RationalExpression(flatexp));
         // console.log("soft", LatexConverter.RationalExpression(flattedSoftexp), flattedSoftexp);
         // console.log("hard", LatexConverter.RationalExpression(flattedHardexp), flattedHardexp);
@@ -607,10 +606,78 @@
         common1factoredflatted.getFactoredOut();
         
         // console.log("---------- Factoring out ------- ");
+        
         // console.log("before", common1.copy(), LatexConverter.RationalSum(common1));
         // console.log("after", common1factored.copy(), LatexConverter.RationalProduct(common1factored));
         // console.log("shortened", common1factoredshorted.copy(), LatexConverter.RationalProduct(common1factoredshorted));
         // console.log("flatten", common1factoredflatted.copy(), LatexConverter.RationalExpression(common1factoredflatted));
+        
+        
+        let tonorm = new RationalProduct(
+            [
+                new RationalProduct(
+                    [
+                        new RationalSum(
+                            [
+                                new RationalProduct(
+                                    [
+                                        new RationalSum(
+                                            [
+                                                RationalMonomial.createExpression(7)
+                                            ]
+                                        ).toExpression()
+                                    ],
+                                    []
+                                ).toExpression()
+                            ]
+                        ).toExpression()
+                    ],
+                    [
+                        new RationalProduct(
+                            [
+                                new RationalSum(
+                                    [
+                                        new RationalProduct(
+                                            [],[],RationalMonomial.create(3, {'a': 1})
+                                        ).toExpression()
+                                    ]
+                                ).toExpression(),
+                                new RationalProduct(
+                                    [
+                                        new RationalSum(
+                                            [
+                                                RationalMonomial.createExpression(3, {"b": 2}),
+                                                RationalMonomial.createExpression(5),
+                                                RationalMonomial.createExpression(10),
+                                                RationalMonomial.createExpression(-2, {"b": 2}),
+                                                RationalMonomial.createExpression(5, {"c": -1}),
+                                            ]
+                                        ).toExpression()
+                                    ],
+                                    []
+                                ).toExpression()
+                            ]
+                        ).toExpression()
+                    ]
+                ).toExpression()
+            ],
+            [
+                
+            ],
+            RationalMonomial.create(1)
+        ).toExpression();
+        
+        let normalized = tonorm.copy();
+        normalized.normalize();
+        
+        let normalized2 = normalized.copy();
+        normalized2.normalize();
+        
+        // console.log("---- Normalization ---");
+        // console.log("before", tonorm.copy(), LatexConverter.RationalExpression(tonorm));
+        // console.log("after", normalized.copy(), LatexConverter.RationalExpression(normalized));
+        // console.log("reaplied", normalized2.copy(), LatexConverter.RationalExpression(normalized2));
+        
         
         
     </script>

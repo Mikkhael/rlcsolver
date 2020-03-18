@@ -299,6 +299,11 @@ class RationalExpression
         // TODO
     }
     
+    normalize()
+    {
+        this.subExpression = this.subExpression.getNormalized();
+    }
+    
     factorOutAndReturnFactor(propagate = true)
     {
         return this.subExpression.factorOutAndReturnFactor(propagate);
@@ -461,9 +466,24 @@ class RationalProduct extends RationalSubExpression
         return new RationalSum([this.toExpression(), subExpression.copy().toExpression()]);
     }
     
-    normalize()
+    getNormalized()
     {
-        // TODO
+        for(let factor of this.numerator)
+        {
+            factor.normalize();
+        }
+        for(let factor of this.denominator)
+        {
+            factor.normalize();
+        }
+        this.refactor();
+        
+        if(this.monomial.isOne() && this.denominator.length === 0 && this.numerator.length === 1 )
+        {
+            return this.numerator[0].subExpression;
+        }
+        
+        return this;
     }
     
     flattenAndReturnDenominator()
@@ -801,9 +821,21 @@ class RationalSum extends RationalSubExpression
         return this;
     }
     
-    normalize()
+    getNormalized()
     {
-        // TODO
+        for(let summant of this.summants)
+        {
+            summant.normalize();
+        }
+        this.refactor();
+        this.resummant();
+        
+        if(this.summants.length === 1)
+        {
+            return this.summants[0].subExpression;
+        }
+        
+        return this;
     }
     
     shorten(propagate = true)
@@ -813,6 +845,20 @@ class RationalSum extends RationalSubExpression
             for(let summant of this.summants)
             {
                 summant.shorten(propagate);
+            }
+        }
+    }
+    
+    refactor()
+    {
+        for(let i=0; i<this.summants.length; i++)
+        {
+            let tempSummant = this.summants[i];
+            if(tempSummant.isSum())
+            {
+                this.summants.splice(i, 1);
+                this.getAdded(tempSummant.subExpression);
+                i--;
             }
         }
     }
